@@ -6,7 +6,6 @@ from sqlalchemy.exc import IntegrityError, NoResultFound
 from fastapi import HTTPException, status
 import datetime
 from schemas.user import UserCreate
-from typing import Any
 
 class CRUDUser(CRUDBase[User]):
     def get_username(self, db: Session, username: str):
@@ -19,7 +18,6 @@ class CRUDUser(CRUDBase[User]):
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found") from e
 
     def create(self, db: Session, obj_in: UserCreate) -> User:
-        print(obj_in.password.get_secret_value())
         password_hash = get_password_hash(obj_in.password.get_secret_value())
         user_obj = User(**dict(obj_in), password_hash=password_hash, created_at=datetime.datetime.now(datetime.UTC))
         try:
@@ -32,13 +30,14 @@ class CRUDUser(CRUDBase[User]):
             db.rollback()
             raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="User already exists in database") from e
         
-    async def authenticate(self, db: Session, username: str, password: str):
+    def authenticate(self, db: Session, username: str, password: str):
         user_obj = self.get_username(db, username)
         is_pwd_valid = verify_password(password, user_obj.password_hash)
         if is_pwd_valid:
             user_obj.last_signed_in = datetime.datetime.now(datetime.UTC)
             db.add(user_obj)
             db.commit()
+            db.refresh(user_obj)
             return user_obj
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Unauthorized", headers={"WWW-Authenticate": "Bearer"})
 

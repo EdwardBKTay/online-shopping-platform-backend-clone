@@ -48,3 +48,42 @@ class TestCreateUser:
     
         assert exc_info.value.status_code == status.HTTP_409_CONFLICT
         assert "User already exists in database" in str(exc_info.value.detail)
+        
+@pytest.fixture
+def create_test_user(session: Session) -> tuple[str, str, SecretStr]:
+    username = "testuser"
+    email = "testuser@example.com"
+    password = SecretStr("Test_1234!")
+    obj_in = UserCreate(username=username, email=email, password=password)
+    user.create(session, obj_in)
+    return username, email, password
+
+class TestAuthenticateUser:
+    def test_auth_user(self, session: Session, create_test_user: tuple[str, str, SecretStr]):
+        username, email, password = create_test_user
+        
+        user_obj = user.authenticate(session, username, password.get_secret_value())
+        
+        assert user_obj.username == username
+        assert user_obj.email == email
+        assert isinstance(user_obj.last_signed_in, datetime.datetime)
+        assert user_obj.id is not None
+        
+    def test_bad_password(self, session: Session, create_test_user: tuple[str, str, SecretStr]):
+        username, email, password = create_test_user
+        
+        with pytest.raises(HTTPException) as exc_info:
+            user.authenticate(session, username, password="test_1234")
+        
+        assert exc_info.value.status_code == 401
+        assert exc_info.value.detail == "Unauthorized"
+        assert exc_info.value.headers == {"WWW-Authenticate": "Bearer"}
+        
+    def test_bad_username(self, session: Session, create_test_user: tuple[str, str, SecretStr]):
+        username, email, password = create_test_user
+
+        with pytest.raises(HTTPException) as exc_info:
+            user.authenticate(session, username="test", password=password.get_secret_value())
+
+        assert exc_info.value.status_code == 404
+        assert exc_info.value.detail == "User not found"
