@@ -2,15 +2,17 @@ from typing import Annotated
 from fastapi import APIRouter, Form, Depends, HTTPException, status
 from pydantic import EmailStr, SecretStr, ValidationError
 from sqlmodel import Session
+from db.models import User
 
 from schemas.user import UserCreate
 from crud.crud_user import user
-from core.deps import get_session
+from core.deps import get_session, get_current_user
 
 users_router = APIRouter()
 
-@users_router.get("/{username}/")
-async def get_user_by_username(username: str, session: Annotated[Session, Depends(get_session)]):
+# TODO: route for profile of users (GET)
+@users_router.get("/{username}/", dependencies=[Depends(get_current_user)])
+async def get_profile_by_username(username: str, session: Annotated[Session, Depends(get_session)]):
     return user.get_username(session, username)
 
 @users_router.post("/create/", status_code=201)
