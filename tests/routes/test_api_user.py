@@ -9,7 +9,7 @@ class TestGetUserByUsernameAPI:
             "username": "testuser",
             "email": "testuser@example.com",
             "password": "Test&@1234!"
-        }, headers={"Content-Type": "application/x-www-form-urlencoded"}) # type: ignore
+        }, headers={"Content-Type": "application/x-www-form-urlencoded"})
         
     def test_api_working(self, client: TestClient):
         self.setup_user(client)

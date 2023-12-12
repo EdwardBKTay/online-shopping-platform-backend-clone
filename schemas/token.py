@@ -6,5 +6,7 @@ class Token(BaseModel):
     access_token: str
     token_type: str
 
-class TokenPayload(UserBase):
-    exp: datetime
+class TokenPayload(BaseModel):
+    username: str
+    email: str
+    exp: datetime | int 

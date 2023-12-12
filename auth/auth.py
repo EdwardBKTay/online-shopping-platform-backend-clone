@@ -17,8 +17,6 @@ def read_public_key():
     with open(public_key_path, "rb") as file:
         return file.read()
     
-read_public_key()
-    
 def read_private_key():
     current_dir = os.getcwd()
     private_key_path = os.path.join(current_dir, "private_key.pem")
