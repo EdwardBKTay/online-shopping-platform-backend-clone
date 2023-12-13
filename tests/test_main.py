@@ -1,7 +1,7 @@
 import pytest
 
 from sqlmodel import SQLModel
-from core.deps import get_session
+from core.deps import get_session, get_current_user
 from main import app
 from fastapi.testclient import TestClient
 from sqlmodel import create_engine, Session
@@ -33,7 +33,12 @@ def client_fixture(session: Session):
     def get_session_override():
         return session
     
+    def override_get_current_user():
+        pass
+    
     app.dependency_overrides[get_session] = get_session_override
+    
+    app.dependency_overrides[get_current_user] = override_get_current_user
     
     client = TestClient(app)
     yield client

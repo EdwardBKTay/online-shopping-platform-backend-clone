@@ -6,6 +6,7 @@ from fastapi import Depends, HTTPException
 from auth.auth import oauth2_scheme, ALGORITHM, TokenPayload, read_public_key
 from jose import jwt, JWTError
 from crud.crud_user import user
+import datetime
 
 def get_session():
     engine = get_db(DB_URL, {"echo": True})
@@ -27,6 +28,10 @@ def get_current_user(token: Annotated[str, Depends(oauth2_scheme)], session: Ses
             raise http_exception
         
         user_obj = user.get_username(session, token_data.username)
+        user_obj.last_signed_in = datetime.datetime.now(datetime.UTC)
+        
+        session.add(user_obj)
+        session.commit()
     
         if user_obj is None:
             raise http_exception

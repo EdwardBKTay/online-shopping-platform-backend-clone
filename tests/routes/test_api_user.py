@@ -11,6 +11,11 @@ class TestGetUserByUsernameAPI:
             "password": "Test&@1234!"
         }, headers={"Content-Type": "application/x-www-form-urlencoded"})
         
+        client.post("/token/", data={
+            "username": "testuser",
+            "password": "Test&@1234!"
+        }, headers={"Content-Type": "application/x-www-form-urlencoded"})
+        
     def test_api_working(self, client: TestClient):
         self.setup_user(client)
         
