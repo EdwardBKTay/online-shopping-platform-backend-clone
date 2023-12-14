@@ -1,1 +1,2 @@
-- write get current vendor function 
+- write item listing api
+- user and vendor profiles api
