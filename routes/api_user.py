@@ -13,7 +13,7 @@ users_router = APIRouter()
 # TODO: route for profile of users (GET)
 @users_router.get("/{username}/", dependencies=[Depends(get_current_user)])
 async def get_user(username: str, session: Annotated[Session, Depends(get_session)]):
-    return user.get_username(session, username)
+    return user.get(session, username)
 
 @users_router.post("/create/", status_code=201)
 async def create_user(username: Annotated[str, Form()], email: Annotated[EmailStr, Form()], password: Annotated[SecretStr, Form()], session: Annotated[Session, Depends(get_session)]):

@@ -14,7 +14,7 @@ class TestGetUserByUsername:
     def test_get_user(self, session: Session):
         # Test Case 1: To get user in db
         user_obj = user.create(session, self.user_create)
-        user_dict = user.get_username(session, user_obj.username)
+        user_dict = user.get(session, user_obj.username)
         
         assert user_dict.username == "testuser"
         assert user_dict.email == "testuser@example.com"
@@ -23,7 +23,7 @@ class TestGetUserByUsername:
         user.create(session, self.user_create)
         
         with pytest.raises(HTTPException) as exc_info:
-            user.get_username(session, "testuser1")
+            user.get(session, "testuser1")
         
         assert exc_info.value.status_code == 404
         assert exc_info.value.detail == "User not found"

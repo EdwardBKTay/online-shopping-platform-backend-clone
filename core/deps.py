@@ -27,7 +27,7 @@ def get_current_user(token: Annotated[str, Depends(oauth2_scheme)], session: Ses
         if token_data.username is None and token_data.email is None:
             raise http_exception
         
-        user_obj = user.get_username(session, token_data.username)
+        user_obj = user.get(session, token_data.username)
         user_obj.last_signed_in = datetime.datetime.now(datetime.UTC)
         
         session.add(user_obj)
