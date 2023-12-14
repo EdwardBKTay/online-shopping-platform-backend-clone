@@ -40,3 +40,5 @@ def get_current_user(token: Annotated[str, Depends(oauth2_scheme)], session: Ses
         raise http_exception from e
             
     return user_obj
+
+# def get_current_vendor():
