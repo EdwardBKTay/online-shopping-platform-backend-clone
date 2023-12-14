@@ -26,7 +26,7 @@ class TestGetUserByUsername:
             user.get(session, "testuser1")
         
         assert exc_info.value.status_code == 404
-        assert exc_info.value.detail == "User not found"
+        assert exc_info.value.detail == "Not found"
 
 class TestCreateUser:
     def test_create_new_user(self, session: Session):
@@ -86,4 +86,4 @@ class TestAuthenticateUser:
             user.authenticate(session, username="test", password=password.get_secret_value())
 
         assert exc_info.value.status_code == 404
-        assert exc_info.value.detail == "User not found"
+        assert exc_info.value.detail == "Not found"

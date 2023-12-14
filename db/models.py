@@ -20,7 +20,7 @@ class Vendor(SQLModel, table=True): # type: ignore
     Vendor database model
     """
     id: Optional[int] = Field(default=None, primary_key=True)
-    vendor_username: str = Field(unique=True, index=True)
+    username: str = Field(unique=True, index=True)
     email: str = Field(unique=True)
     password_hash: str = Field(exclude=True)
     last_signed_in: Optional[datetime.datetime] = Field(sa_column=Column(DateTime(timezone=True), default=None))
