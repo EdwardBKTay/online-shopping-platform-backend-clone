@@ -20,7 +20,7 @@ class CRUDBase(Generic[DBModelType, CreateSchemaType]):
             result = db.exec(stmt).one()
             return result
         except NoResultFound as e:
-            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found") from e
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Not found") from e
         
     def create(self, db: Session, obj_in: CreateSchemaType) -> DBModelType:
         password_hash = get_password_hash(obj_in.password.get_secret_value()) # type: ignore

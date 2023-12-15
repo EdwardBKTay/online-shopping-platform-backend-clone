@@ -36,7 +36,7 @@ class TestGetUserByUsernameAPI:
         data = response.json()
         
         assert response.status_code == 404
-        assert "detail" in data and data["detail"] == "User not found"
+        assert "detail" in data and data["detail"] == "Not found"
 
 class TestUserCreationAPI:
     def test_api_working(self, client: TestClient):
