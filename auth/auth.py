@@ -7,7 +7,7 @@ from schemas.token import TokenPayload
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
-ACCESS_TOKEN_EXPIRATION_MINUTES = 60
+ACCESS_TOKEN_EXPIRATION_MINUTES = 5
 ALGORITHM = "RS256"
 
 def read_public_key():

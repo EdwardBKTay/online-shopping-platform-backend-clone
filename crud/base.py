@@ -3,7 +3,7 @@ from sqlmodel import Session, select
 from fastapi import HTTPException, status
 from sqlalchemy.exc import NoResultFound, IntegrityError
 from auth.auth import get_password_hash, verify_password
-from pydantic import BaseModel, SecretStr
+from pydantic import BaseModel
 import datetime
 
 DBModelType = TypeVar("DBModelType", bound=Any)

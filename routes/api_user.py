@@ -6,12 +6,12 @@ from db.models import User
 
 from schemas.user import UserCreate
 from crud.crud_user import user
-from core.deps import get_session, get_current_user
+from core.deps import get_session, get_current_entity
 
 users_router = APIRouter()
 
 # TODO: route for profile of users (GET)
-@users_router.get("/{username}/", dependencies=[Depends(get_current_user)])
+@users_router.get("/{username}/", dependencies=[Depends(get_current_entity)])
 async def get_user(username: str, session: Annotated[Session, Depends(get_session)]):
     return user.get(session, username)
 
