@@ -2,7 +2,7 @@ from pydantic import ValidationError
 from db.engine import get_db, DB_URL
 from sqlmodel import Session
 from typing import Annotated
-from fastapi import Depends, HTTPException
+from fastapi import Depends, HTTPException, Header
 from auth.auth import oauth2_scheme, ALGORITHM, TokenPayload, read_public_key
 from jose import jwt, JWTError, ExpiredSignatureError
 from crud.crud_user import user
@@ -14,7 +14,8 @@ def get_session():
     with Session(engine) as session:
         yield session
         
-def get_current_entity(token: Annotated[str, Depends(oauth2_scheme)], session: Session = Depends(get_session), is_vendor: bool = False):
+# rewrite get_current_entity to use the new TokenPayload model
+def get_current_entity(token: Annotated[str, Depends(oauth2_scheme)], session: Session = Depends(get_session), is_vendor: bool = Header(False)):
     http_exception = HTTPException(status_code=401, detail="Invalid authentication credentials", headers={"WWW-Authenticate": "Bearer"})
     
     try:

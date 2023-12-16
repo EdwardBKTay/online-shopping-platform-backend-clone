@@ -35,7 +35,7 @@ class CRUDBase(Generic[DBModelType, CreateSchemaType]):
         except IntegrityError as e:
             raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="User already exists in database") from e
     
-    def authenticate(self, db: Session, username: str, password: str) -> DBModelType:
+    def authenticate(self, db: Session, username: str, password: str) -> DBModelType | None:
         user_obj = self.get(db, username)
         is_pwd_valid = verify_password(password, user_obj.password_hash)
         if is_pwd_valid:
@@ -44,4 +44,4 @@ class CRUDBase(Generic[DBModelType, CreateSchemaType]):
             db.commit()
             db.refresh(user_obj)
             return user_obj
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Unauthorized", headers={"WWW-Authenticate": "Bearer"})
+        return None
