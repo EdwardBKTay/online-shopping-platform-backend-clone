@@ -1,9 +1,9 @@
 import pytest
 
-from auth.auth import get_password_hash, verify_password, create_access_token, private_key
+from auth.auth import get_password_hash, verify_password, create_access_token, private_key, public_key
 from pydantic import SecretStr
-
-from utils.token_schema import TokenPayload
+from jose import jwt
+from schemas.user import UserState
 import datetime
 
 class TestPasswordHash:
@@ -25,7 +25,12 @@ class TestPasswordHash:
 
 class TestCreateAccessToken:
     def test_create(self):
-        payload: TokenPayload = TokenPayload(username="testuser", email="testuser@example.com", exp=datetime.datetime.now(datetime.UTC) + datetime.timedelta(minutes=15))
+        payload = UserState(username="testuser", email="testuser@example.com", exp=datetime.datetime.now(datetime.UTC) + datetime.timedelta(minutes=15))
         access_token = create_access_token(payload, private_key)
+        decoded_token = jwt.decode(access_token, public_key, algorithms=["RS256"])
         
         assert isinstance(access_token, str)
+        assert payload.username == decoded_token["username"]
+        assert payload.email == decoded_token["email"]
+        assert int(payload.exp.timestamp()) == decoded_token["exp"]
+        assert payload.is_vendor == decoded_token["is_vendor"]

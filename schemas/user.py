@@ -9,6 +9,7 @@ class UserBase(BaseModel):
 
 class UserCreate(UserBase): 
     password: SecretStr
+    is_vendor: bool = Field(default=False)
     
     @field_validator("password")
     @classmethod
@@ -28,4 +29,5 @@ class UserState(BaseModel):
     username: str
     email: EmailStr
     is_vendor: bool = False
-    exp: datetime | int
+    exp: datetime
+    
