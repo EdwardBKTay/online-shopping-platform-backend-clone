@@ -1,9 +1,9 @@
 import pytest
 
-from auth.auth import get_password_hash, verify_password, create_access_token
+from auth.auth import get_password_hash, verify_password, create_access_token, private_key
 from pydantic import SecretStr
 
-from schemas.token import TokenPayload
+from utils.token_schema import TokenPayload
 import datetime
 
 class TestPasswordHash:
@@ -26,6 +26,6 @@ class TestPasswordHash:
 class TestCreateAccessToken:
     def test_create(self):
         payload: TokenPayload = TokenPayload(username="testuser", email="testuser@example.com", exp=datetime.datetime.now(datetime.UTC) + datetime.timedelta(minutes=15))
-        access_token = create_access_token(payload)
+        access_token = create_access_token(payload, private_key)
         
         assert isinstance(access_token, str)

@@ -2,11 +2,12 @@ from fastapi.security import OAuth2PasswordBearer
 from passlib.context import CryptContext
 from jose import jwt
 import os
-from schemas.token import TokenPayload
+from utils.token_schema import TokenPayload
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
+
 ACCESS_TOKEN_EXPIRATION_MINUTES = 5
 ALGORITHM = "RS256"
 
@@ -22,6 +23,8 @@ def read_private_key():
     private_key_path = os.path.join(current_dir, "private_key.pem")
     with open(private_key_path, "rb") as file:
         return file.read()
+    
+private_key = read_private_key()
 
 def get_password_hash(password: str) -> str:
     return pwd_context.hash(password)
@@ -29,12 +32,7 @@ def get_password_hash(password: str) -> str:
 def verify_password(password: str, password_hash: str) -> bool:
     return pwd_context.verify(password, password_hash)
 
-def create_access_token(user_data: TokenPayload) -> str:
-    try:
-        private_key = read_private_key()
-    except Exception as e:
-        raise Exception(f"Unable to read private key: {e}") from e
-    
+def create_access_token(user_data: TokenPayload, private_key: bytes) -> str:
     payload = user_data.model_dump().copy()
     encoded_token = jwt.encode(payload, private_key, algorithm=ALGORITHM)
     return encoded_token

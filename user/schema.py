@@ -1,8 +1,10 @@
 import re
 from fastapi import HTTPException, status
-from pydantic import BaseModel, EmailStr, SecretStr, field_serializer, Field, field_validator, SecretStr
+from pydantic import EmailStr, SecretStr, field_serializer, Field, field_validator, SecretStr
 
-class UserBase(BaseModel):
+from utils.crud_base import CreateSchemaBaseModel
+
+class UserBase(CreateSchemaBaseModel):
     username: str = Field(pattern=r"^[a-zA-Z0-9]+$", min_length=3, max_length=20)
     email: EmailStr
 

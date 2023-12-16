@@ -1,8 +1,10 @@
 import pytest
 
 from sqlmodel import SQLModel
-from core.deps import get_session, get_current_entity
+from core.deps import get_session
 from main import app
+from user.crud import user
+from vendor.crud import vendor
 from fastapi.testclient import TestClient
 from sqlmodel import create_engine, Session
 from sqlmodel.pool import StaticPool
@@ -38,7 +40,9 @@ def client_fixture(session: Session):
     
     app.dependency_overrides[get_session] = get_session_override
     
-    app.dependency_overrides[get_current_entity] = override_get_current_user
+    app.dependency_overrides[user.get_current_user] = override_get_current_user
+    
+    app.dependency_overrides[vendor.get_current_vendor] = override_get_current_user
     
     client = TestClient(app)
     yield client

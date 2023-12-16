@@ -1,4 +1,4 @@
-from schemas.user import UserCreate
+from user.schema import UserCreate
 
 class VendorCreate(UserCreate):
     pass
