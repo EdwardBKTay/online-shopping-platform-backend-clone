@@ -18,7 +18,7 @@ class UserCreate(UserBase):
         re_compile = re.compile(r"^(?=.*?[A-Z])(?=.*?[a-z])(?=.*?[0-9])(?=.*?[@$!%*?&^_-])\S{8,}$")
         is_valid = re.fullmatch(re_compile, str_pwd)
         if is_valid is None:
-            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST ,detail="Password must contain at least 8 characters, including at least one uppercase letter, one lowercase letter, one digit, one special character (@$!%*?&^_-), and no whitespace.")
+            raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY ,detail="Password must contain at least 8 characters, including at least one uppercase letter, one lowercase letter, one digit, one special character (@$!%*?&^_-), and no whitespace.")
         return v
     
     @field_serializer("password", when_used="json")
@@ -29,5 +29,5 @@ class UserState(BaseModel):
     username: str
     email: EmailStr
     is_vendor: bool = False
-    exp: datetime
+    exp: datetime | int
     

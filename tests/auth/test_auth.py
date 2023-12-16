@@ -32,5 +32,8 @@ class TestCreateAccessToken:
         assert isinstance(access_token, str)
         assert payload.username == decoded_token["username"]
         assert payload.email == decoded_token["email"]
-        assert int(payload.exp.timestamp()) == decoded_token["exp"]
+        if isinstance(payload.exp, datetime.datetime):
+            assert int(payload.exp.timestamp()) == decoded_token["exp"]
+        else:
+            assert payload.exp == decoded_token["exp"]
         assert payload.is_vendor == decoded_token["is_vendor"]

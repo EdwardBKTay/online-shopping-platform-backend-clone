@@ -33,12 +33,7 @@ def client_fixture(session: Session):
     def get_session_override():
         return session
     
-    def override_get_current_user():
-        pass
-    
     app.dependency_overrides[get_session] = get_session_override
-    
-    app.dependency_overrides[user.get_current_user] = override_get_current_user
     
     client = TestClient(app)
     yield client

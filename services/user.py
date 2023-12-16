@@ -48,10 +48,12 @@ class CRUDUser:
             return user_obj
         return None
     
-    def get_current_user(self, public_key: Annotated[bytes, Depends(read_public_key)], token: Annotated[str, Depends(oauth2_scheme)], session: Session = Depends(get_session)):
+    def get_current_user(self, public_key: Annotated[bytes, Depends(read_public_key)], token: Annotated[str, Depends(oauth2_scheme)], session: Annotated[Session, Depends(get_session)]):
         http_exception = HTTPException(status_code=401, detail="Invalid authentication credentials", headers={"WWW-Authenticate": "Bearer"})
         
         payload = jwt.decode(token, public_key, algorithms=[ALGORITHM], options={"verify_signature": True})
+        
+        print(payload)
         
         try:
             token_data = UserState.model_validate(payload, strict=True)
