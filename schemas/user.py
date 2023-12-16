@@ -1,10 +1,9 @@
 import re
 from fastapi import HTTPException, status
-from pydantic import EmailStr, SecretStr, field_serializer, Field, field_validator, SecretStr
+from pydantic import EmailStr, SecretStr, field_serializer, Field, field_validator, SecretStr, BaseModel
+from datetime import datetime
 
-from utils.crud_base import CreateSchemaBaseModel
-
-class UserBase(CreateSchemaBaseModel):
+class UserBase(BaseModel):
     username: str = Field(pattern=r"^[a-zA-Z0-9]+$", min_length=3, max_length=20)
     email: EmailStr
 
@@ -24,3 +23,9 @@ class UserCreate(UserBase):
     @field_serializer("password", when_used="json")
     def dump_secret(self, v: SecretStr):
         return v.get_secret_value()
+
+class UserState(BaseModel):
+    username: str
+    email: EmailStr
+    is_vendor: bool = False
+    exp: datetime | int
