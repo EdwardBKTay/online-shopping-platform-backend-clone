@@ -21,7 +21,7 @@ async def create_user(session: Annotated[Session, Depends(get_session)], req: Us
     return user.create(session, req)
 
 @users_router.post("/login/")
-async def login_user(form_data: Annotated[OAuth2PasswordRequestForm, Depends()], session: Annotated[Session, Depends(get_session)]):
+async def login_user_for_access_token(form_data: Annotated[OAuth2PasswordRequestForm, Depends()], session: Annotated[Session, Depends(get_session)]):
     http_exception = HTTPException(status_code=401, detail="Invalid user credentials")
     
     user_obj = user.authenticate(session, form_data.username, form_data.password)
