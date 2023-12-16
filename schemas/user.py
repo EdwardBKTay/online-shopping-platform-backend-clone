@@ -30,4 +30,3 @@ class UserState(BaseModel):
     email: EmailStr
     is_vendor: bool = False
     exp: datetime | int
-    
