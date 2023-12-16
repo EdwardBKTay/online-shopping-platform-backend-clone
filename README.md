@@ -1,2 +1,3 @@
 - write item listing api
 - user and vendor profiles api
+- write email verification, password reset, and password change, and email change, and logout api
