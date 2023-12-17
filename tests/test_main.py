@@ -7,7 +7,7 @@ from services.crud_user import user
 from fastapi.testclient import TestClient
 from sqlmodel import create_engine, Session
 from sqlmodel.pool import StaticPool
-from db.models import User
+from db.models import User, Product
 import os
 
 @pytest.fixture(name="session")
@@ -18,7 +18,7 @@ def session_fixture():
     connection = engine.connect()
     
     SQLModel.metadata.create_all(bind=engine)
-    session = Session(bind=connection)
+    session = Session(bind=connection, autoflush=True, autocommit=False)
     
     yield session
     

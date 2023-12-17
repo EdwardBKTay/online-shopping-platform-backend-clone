@@ -53,5 +53,5 @@ async def logout_user(response: Response, current_user: Annotated[User, Depends(
 @users_router.get("/{username}/")
 async def get_user(username: str, session: Annotated[Session, Depends(get_session)], current_user: Annotated[User, Depends(get_current_user)]):
     if current_user.username != username:
-        raise HTTPException(status_code=403, detail="Access forbidden")
+        raise HTTPException(status_code=403, detail="Not allowed to access other user's data")
     return user.get_username(session, current_user.username)

@@ -1,4 +1,4 @@
-from typing import Optional
+from typing import Optional, List
 from sqlmodel import SQLModel, Field, Column, DateTime, Relationship
 import datetime
 
@@ -17,7 +17,7 @@ class User(SQLModel, table=True):
     is_vendor: bool = Field(default=False)
     is_superuser: bool = Field(default=False)
     auth_token: Optional[str] = Field(default=None)
-    products: list["Product"] = Relationship(back_populates="vendor")
+    products: List["Product"] = Relationship(back_populates="vendor")
 
 class Product(SQLModel, table=True):
     """
