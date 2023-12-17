@@ -5,7 +5,7 @@ from schemas.user import UserCreate, UserState
 from pydantic import SecretStr
 from sqlmodel import Session
 from fastapi import HTTPException, status
-from services.user import user
+from services.crud_user import user, get_current_user
 from tests.test_main import session_fixture
 from auth.auth import public_key, create_access_token, private_key
 import datetime
@@ -82,7 +82,7 @@ class TestCRUDUser:
     def test_get_current_user(self, session: Session, create_test_user: tuple[User, str]):
         user_obj, token = create_test_user
         
-        user_dict = user.get_current_user(public_key, token, session)
+        user_dict = get_current_user(public_key, token, session)
         print(user_dict)
         
         if user_dict is None:
@@ -95,7 +95,7 @@ class TestCRUDUser:
     def test_get_current_user_bad_token(self, session: Session, create_test_user: tuple[User, str]):
         
         with pytest.raises(HTTPException) as exc_info:
-            user.get_current_user(public_key, "bad_token", session)
+            get_current_user(public_key, "bad_token", session)
         
         assert exc_info.value.status_code == 401
         assert exc_info.value.detail == "Invalid authentication credentials"
@@ -111,7 +111,7 @@ class TestCRUDUser:
         session.refresh(user_obj)
         
         with pytest.raises(HTTPException) as exc_info:
-            user.get_current_user(public_key, token, session)
+            get_current_user(public_key, token, session)
         
         assert exc_info.value.status_code == 401
         assert exc_info.value.detail == "Token has expired"

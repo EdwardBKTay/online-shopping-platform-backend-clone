@@ -5,3 +5,4 @@ def get_session():
     engine = get_db(DB_URL, {"echo": True})
     with Session(engine) as session:
         yield session
+

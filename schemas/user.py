@@ -7,7 +7,7 @@ class UserBase(BaseModel):
     username: str = Field(pattern=r"^[a-zA-Z0-9]+$", min_length=3, max_length=20)
     email: EmailStr
 
-class UserCreate(UserBase): 
+class UserCreate(UserBase):
     password: SecretStr
     is_vendor: bool = Field(default=False)
     is_superuser: bool = Field(default=False)

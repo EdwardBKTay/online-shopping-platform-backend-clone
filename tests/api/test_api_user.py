@@ -3,7 +3,7 @@ from db.models import User
 
 from tests.test_main import client_fixture, session_fixture
 from fastapi.testclient import TestClient
-from services.user import user
+from services.crud_user import user
 from schemas.user import UserCreate
 from sqlmodel import Session
 from pydantic import SecretStr

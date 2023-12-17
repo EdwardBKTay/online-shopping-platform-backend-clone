@@ -3,7 +3,7 @@ from fastapi.security import OAuth2PasswordRequestForm
 from sqlmodel import Session
 from utils.deps import get_session
 from db.models import User
-from services.user import user
+from services.crud_user import user, get_current_user
 from schemas.user import UserBase, UserCreate, UserState
 from schemas.token import Token
 from typing import Annotated
@@ -40,7 +40,7 @@ async def login_user_for_access_token(form_data: Annotated[OAuth2PasswordRequest
     return Token(access_token=access_token, token_type="bearer")
 
 @users_router.get("/logout/")
-async def logout_user(response: Response, current_user: Annotated[User, Depends(user.get_current_user)], session: Annotated[Session, Depends(get_session)]):
+async def logout_user(response: Response, current_user: Annotated[User, Depends(get_current_user)], session: Annotated[Session, Depends(get_session)]):
     user_obj = user.get_username(session, current_user.username)
     user_obj.auth_token = ""
     session.add(user_obj)
@@ -51,7 +51,7 @@ async def logout_user(response: Response, current_user: Annotated[User, Depends(
     return {"message": "User logged out successfully"}
 
 @users_router.get("/{username}/")
-async def get_user(username: str, session: Annotated[Session, Depends(get_session)], current_user: Annotated[User, Depends(user.get_current_user)]):
+async def get_user(username: str, session: Annotated[Session, Depends(get_session)], current_user: Annotated[User, Depends(get_current_user)]):
     if current_user.username != username:
         raise HTTPException(status_code=403, detail="Access forbidden")
     return user.get_username(session, current_user.username)

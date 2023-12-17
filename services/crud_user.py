@@ -15,7 +15,7 @@ class CRUDUser:
     def __init__(self, model: User):
         self.model = model
         
-    def get_username(self, db: Session, username: str) -> User:
+    def get_username(self, db: Session, username: str):
         stmt = select(User).where(User.username == username)
         result = db.exec(stmt).one_or_none()
         
@@ -26,7 +26,7 @@ class CRUDUser:
     
     def create(self, db: Session, req_obj: UserCreate) -> User:
         pwd_hash = get_password_hash(req_obj.password.get_secret_value())
-        user_obj = self.model(**dict(req_obj), password_hash=pwd_hash, created_at=datetime.datetime.now(datetime.UTC))
+        user_obj = User(**dict(req_obj), password_hash=pwd_hash, created_at=datetime.datetime.now(datetime.UTC))
         
         try:
             db.add(user_obj)
@@ -37,13 +37,15 @@ class CRUDUser:
         except IntegrityError as e:
             raise HTTPException(status_code=409, detail="User already exists") from e
 
-    def get_current_user(self, public_key: Annotated[bytes, Depends(read_public_key)], token: Annotated[str, Depends(oauth2_scheme)], session: Annotated[Session, Depends(get_session)]):
+user = CRUDUser(User)
+
+def get_current_user(public_key: Annotated[bytes, Depends(read_public_key)], token: Annotated[str, Depends(oauth2_scheme)], session: Annotated[Session, Depends(get_session)]):
         http_exception = HTTPException(status_code=401, detail="Invalid authentication credentials", headers={"WWW-Authenticate": "Bearer"})
         
         try:
             payload = jwt.decode(token, public_key, algorithms=[ALGORITHM], options={"verify_signature": True})
             token_data = UserState.model_validate(payload, strict=True)
-            db_obj = self.get_username(session, token_data.username)
+            db_obj = user.get_username(session, token_data.username)
             
             if db_obj.auth_token != token:
                 raise http_exception
@@ -59,4 +61,14 @@ class CRUDUser:
         
         return db_obj
 
-user = CRUDUser(User)
+def is_user_vendor(current_user: Annotated[User, Depends(get_current_user)]) -> User:
+    if current_user.is_vendor is False:
+        raise HTTPException(status_code=403, detail="User is not a vendor")
+    
+    return current_user
+
+def is_user_superuser(current_user: Annotated[User, Depends(get_current_user)]) -> User:
+    if current_user.is_superuser is False:
+        raise HTTPException(status_code=403, detail="User is not a superuser")
+    
+    return current_user

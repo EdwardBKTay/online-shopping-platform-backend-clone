@@ -17,19 +17,18 @@ class User(SQLModel, table=True):
     is_vendor: bool = Field(default=False)
     is_superuser: bool = Field(default=False)
     auth_token: Optional[str] = Field(default=None)
-    items: list["Item"] = Relationship(back_populates="vendor")
+    products: list["Product"] = Relationship(back_populates="vendor")
 
-class Item(SQLModel, table=True):
+class Product(SQLModel, table=True):
     """
     Item database model
     """
-    id: Optional[int] = Field(default=None, primary_key=True)
-    name: str = Field(index=True)
+    id: Optional[int] = Field(default=None, primary_key=True, index=True)
+    name: str = Field(unique=True)
     description: str = Field(default=None)
-    price: float = Field()
+    price: float
     created_at: datetime.datetime = Field(sa_column=Column(DateTime(timezone=True), default=datetime.datetime.now(datetime.UTC)))
     updated_at: Optional[datetime.datetime] = Field(sa_column=Column(DateTime(timezone=True), onupdate=datetime.datetime.now(datetime.UTC), default=None))
     quantity: int
-    is_available: bool = Field(default=True)
     vendor_id: Optional[int] = Field(default=None, foreign_key="user.id")
-    vendor: Optional[User] = Relationship(back_populates="items")
+    vendor: Optional[User] = Relationship(back_populates="products")
