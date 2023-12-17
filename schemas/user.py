@@ -10,6 +10,7 @@ class UserBase(BaseModel):
 class UserCreate(UserBase): 
     password: SecretStr
     is_vendor: bool = Field(default=False)
+    is_superuser: bool = Field(default=False)
     
     @field_validator("password")
     @classmethod
@@ -28,5 +29,6 @@ class UserCreate(UserBase):
 class UserState(BaseModel):
     username: str
     email: EmailStr
-    is_vendor: bool = False
+    is_vendor: bool
+    is_superuser: bool
     exp: datetime | int

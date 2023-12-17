@@ -25,7 +25,7 @@ class TestPasswordHash:
 
 class TestCreateAccessToken:
     def test_create(self):
-        payload = UserState(username="testuser", email="testuser@example.com", exp=datetime.datetime.now(datetime.UTC) + datetime.timedelta(minutes=15))
+        payload = UserState(username="testuser", email="testuser@example.com", exp=datetime.datetime.now(datetime.UTC) + datetime.timedelta(minutes=15), is_vendor=False, is_superuser=False)
         access_token = create_access_token(payload, private_key)
         decoded_token = jwt.decode(access_token, public_key, algorithms=["RS256"])
         

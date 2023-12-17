@@ -36,35 +36,17 @@ class CRUDUser:
         
         except IntegrityError as e:
             raise HTTPException(status_code=409, detail="User already exists") from e
-        
-    def authenticate(self, db: Session, username: str, password: str):
-        user_obj = self.get_username(db, username)
-        is_pwd_valid = verify_password(password, user_obj.password_hash)
-        if is_pwd_valid:
-            user_obj.last_signed_in = datetime.datetime.now(datetime.UTC)
-            db.add(user_obj)
-            db.commit()
-            db.refresh(user_obj)
-            return user_obj
-        return None
-    
+
     def get_current_user(self, public_key: Annotated[bytes, Depends(read_public_key)], token: Annotated[str, Depends(oauth2_scheme)], session: Annotated[Session, Depends(get_session)]):
         http_exception = HTTPException(status_code=401, detail="Invalid authentication credentials", headers={"WWW-Authenticate": "Bearer"})
         
-        payload = jwt.decode(token, public_key, algorithms=[ALGORITHM], options={"verify_signature": True})
-        
-        print(payload)
-        
         try:
+            payload = jwt.decode(token, public_key, algorithms=[ALGORITHM], options={"verify_signature": True})
             token_data = UserState.model_validate(payload, strict=True)
             db_obj = self.get_username(session, token_data.username)
             
-            if db_obj is None:
+            if db_obj.auth_token != token:
                 raise http_exception
-            
-            db_obj.last_signed_in = datetime.datetime.now(datetime.UTC)
-            session.add(db_obj)
-            session.commit()
 
         except ValidationError as e:
             raise http_exception from e
@@ -76,5 +58,5 @@ class CRUDUser:
             raise http_exception from e
         
         return db_obj
-    
+
 user = CRUDUser(User)

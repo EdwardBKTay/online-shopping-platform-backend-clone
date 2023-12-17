@@ -13,7 +13,6 @@ ALGORITHM = "RS256"
 
 def read_public_key():
     current_dir = os.getcwd()
-    print(current_dir)
     public_key_path = os.path.join(current_dir, "public_key.pem")
     with open(public_key_path, "rb") as file:
         return file.read()

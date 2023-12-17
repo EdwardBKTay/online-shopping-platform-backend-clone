@@ -2,7 +2,7 @@ from typing import Optional
 from sqlmodel import SQLModel, Field, Column, DateTime, Relationship
 import datetime
 
-class User(SQLModel, table=True): # type: ignore
+class User(SQLModel, table=True):
     """
     User database model
     """
@@ -16,9 +16,10 @@ class User(SQLModel, table=True): # type: ignore
     updated_at: Optional[datetime.datetime] = Field(sa_column=Column(DateTime(timezone=True), onupdate=datetime.datetime.now(datetime.UTC), default=None))
     is_vendor: bool = Field(default=False)
     is_superuser: bool = Field(default=False)
+    auth_token: Optional[str] = Field(default=None)
     items: list["Item"] = Relationship(back_populates="vendor")
 
-class Item(SQLModel, table=True): # type: ignore
+class Item(SQLModel, table=True):
     """
     Item database model
     """
