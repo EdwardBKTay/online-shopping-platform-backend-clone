@@ -1,6 +1,6 @@
 import pytest
-from db.models import User
 
+from db.models import User
 from schemas.user import UserCreate, UserState
 from pydantic import SecretStr
 from sqlmodel import Session
@@ -10,13 +10,16 @@ from tests.test_main import session_fixture
 from auth.auth import public_key, create_access_token, private_key
 import datetime
 
-
-class TestGetUserByUsername:
-    user_create = UserCreate(username="testuser", email="testuser@example.com", password=SecretStr("Test_1234!"))
+class TestCRUDUser:
+    @pytest.fixture
+    def user_data(self) -> UserCreate:
+        user_data = UserCreate(username="testuser", email="testuser@example.com", password=SecretStr("Test_1234!"))
+        
+        return user_data
     
-    def test_get_user(self, session: Session):
+    def test_get_username_existing_user(self, session: Session, user_data: UserCreate):
         # Test Case 1: To get user in db
-        user_obj = user.create(session, self.user_create)
+        user_obj = user.create(session, user_data)
         user_dict = user.get_username(session, user_obj.username)
         
         if user_dict is None:
@@ -24,83 +27,91 @@ class TestGetUserByUsername:
         
         assert user_dict.username == "testuser"
         assert user_dict.email == "testuser@example.com"
-    
-    def test_bad_user(self, session: Session):
-        user.create(session, self.user_create)
         
+    def test_get_username_nonexistent_user(self, session: Session):
+        with pytest.raises(HTTPException) as exc_info:
+            user.get_username(session, "testuser")
+        
+        assert exc_info.value.status_code == 404
+        assert exc_info.value.detail == "User not found"
+        
+    def test_get_username_invalid_username(self, session: Session):
         with pytest.raises(HTTPException) as exc_info:
             user.get_username(session, "testuser1")
         
         assert exc_info.value.status_code == 404
         assert exc_info.value.detail == "User not found"
-
-class TestCreateUser:
-    def test_create_new_user(self, session: Session):
+        
+    def test_create_user(self, session: Session, user_data: UserCreate):
         # Test Case 1: Create a new user
-        user_create = UserCreate(username="testuser", email="testuser@example.com", password=SecretStr("Test_1234!"))
-        user_obj = user.create(session, user_create)
+        user_obj = user.create(session, user_data)
         assert user_obj.username == "testuser"
         assert user_obj.password_hash != "Test_1234!"
         assert isinstance(user_obj.created_at, datetime.datetime)
         
-    def test_existing_username(self, session: Session):
-        # Test case 2: Try to create a user with an existing username and email
-        user_create1 = UserCreate(username="testuser1", email="testuser1@example.com", password=SecretStr("Test_1234!"))
-        user.create(session, user_create1)
+    def test_create_existing_username(self, session: Session, user_data: UserCreate):
+        user.create(session, user_data)
 
         with pytest.raises(HTTPException) as exc_info:
-            user_create2 = UserCreate(username="testuser1", email="testuser2@example.com", password=SecretStr("Test_5678!"))
-            user.create(session, user_create2)
+            user.create(session, user_data)
     
         assert exc_info.value.status_code == status.HTTP_409_CONFLICT
         assert "User already exists" in str(exc_info.value.detail)
+        
+    def test_create_existing_email(self, session: Session, user_data: UserCreate):
+        user.create(session, user_data)
 
-@pytest.fixture
-def add_user_in_db(session: Session) -> User:
-    username = "testuser"
-    email = "testuser@example.com"
-    password = SecretStr("Test_1234!")
-    obj_in = UserCreate(username=username, email=email, password=password)
-    user_db = user.create(session, obj_in)
+        with pytest.raises(HTTPException) as exc_info:
+            user.create(session, user_data)
     
-    payload = UserState(username=username, email=email, is_vendor=False, exp=datetime.datetime.now(datetime.UTC) + datetime.timedelta(minutes=15), is_superuser=False)
-    token = create_access_token(payload, private_key)
-    user_db.auth_token = token
-    session.add(user_db)
-    session.commit()
-    session.refresh(user_db)
-    
-    return user_db
-    
-# class TestGetCurrentUser:
-#     def test_get_current_user(self, session: Session, create_test_user: tuple[str, str, SecretStr]):
-#         username, email, password = create_test_user
+        assert exc_info.value.status_code == status.HTTP_409_CONFLICT
+        assert "User already exists" in str(exc_info.value.detail)
         
-#         payload = UserState(username=username, email=email, is_vendor=False, exp=datetime.datetime.now(datetime.UTC) + datetime.timedelta(minutes=15), is_superuser=False)
+    @pytest.fixture
+    def create_test_user(self, session: Session, user_data: UserCreate):
+        user_obj = user.create(session, user_data)
+        payload = UserState(username=user_obj.username, email=user_obj.email, is_vendor=user_obj.is_vendor, is_superuser=user_obj.is_superuser, exp=datetime.datetime.now(datetime.UTC) + datetime.timedelta(minutes=15))
+        token = create_access_token(payload, private_key)
+        user_obj.auth_token = token
+        session.add(user_obj)
+        session.commit()
+        session.refresh(user_obj)
         
-#         token = create_access_token(payload, private_key)
-#         user_data = user.get_username(session, username)
+        return user_obj, token
         
+    def test_get_current_user(self, session: Session, create_test_user: tuple[User, str]):
+        user_obj, token = create_test_user
         
-#         user_obj = user.get_current_user(public_key, token, session)
+        user_dict = user.get_current_user(public_key, token, session)
+        print(user_dict)
         
-#         if user_obj is None:
-#             pytest.fail("User not found")
+        if user_dict is None:
+            pytest.fail("User not found")
         
-#         assert user_obj.username == username
-#         assert user_obj.email == email
-#         assert isinstance(user_obj.last_signed_in, datetime.datetime)
-#         assert user_obj.id is not None
+        assert user_dict.username == user_obj.username
+        assert user_dict.email == user_obj.email
+        assert user_dict.id is not None
         
-#     def test_bad_username(self, session: Session, create_test_user: tuple[str, str, SecretStr]):
-#         username, email, password = create_test_user
+    def test_get_current_user_bad_token(self, session: Session, create_test_user: tuple[User, str]):
         
-#         payload = UserState(username="test", email=email, is_vendor=False, is_superuser=False, exp=datetime.datetime.now(datetime.UTC) + datetime.timedelta(minutes=15))
+        with pytest.raises(HTTPException) as exc_info:
+            user.get_current_user(public_key, "bad_token", session)
         
-#         token = create_access_token(payload, private_key)
+        assert exc_info.value.status_code == 401
+        assert exc_info.value.detail == "Invalid authentication credentials"
         
-#         with pytest.raises(HTTPException) as exc_info:
-#             user.get_current_user(public_key, token, session)
+    def test_get_current_user_expired_token(self, session: Session, user_data: UserCreate):
+        user_obj = user.create(session, user_data)
         
-#         assert exc_info.value.status_code == 404
-#         assert exc_info.value.detail == "User not found"
+        payload = UserState(username=user_obj.username, email=user_obj.email, is_vendor=user_obj.is_vendor, is_superuser=user_obj.is_superuser, exp=datetime.datetime.now(datetime.UTC) - datetime.timedelta(seconds=5))
+        token = create_access_token(payload, private_key)
+        user_obj.auth_token = token
+        session.add(user_obj)
+        session.commit()
+        session.refresh(user_obj)
+        
+        with pytest.raises(HTTPException) as exc_info:
+            user.get_current_user(public_key, token, session)
+        
+        assert exc_info.value.status_code == 401
+        assert exc_info.value.detail == "Token has expired"
