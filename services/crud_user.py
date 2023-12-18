@@ -39,7 +39,7 @@ class CRUDUser:
 
 user = CRUDUser(User)
 
-def get_current_user(public_key: Annotated[bytes, Depends(read_public_key)], token: Annotated[str, Depends(oauth2_scheme)], session: Annotated[Session, Depends(get_session)]):
+def get_current_user(public_key: Annotated[bytes, Depends(read_public_key)], token: Annotated[str, Depends(oauth2_scheme)], session: Annotated[Session, Depends(get_session)]) -> User:
         http_exception = HTTPException(status_code=401, detail="Invalid authentication credentials", headers={"WWW-Authenticate": "Bearer"})
         
         try:

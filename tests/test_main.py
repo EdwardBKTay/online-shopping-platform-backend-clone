@@ -18,7 +18,7 @@ def session_fixture():
     connection = engine.connect()
     
     SQLModel.metadata.create_all(bind=engine)
-    session = Session(bind=connection, autoflush=True, autocommit=False)
+    session = Session(bind=connection)
     
     yield session
     

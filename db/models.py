@@ -27,8 +27,8 @@ class Product(SQLModel, table=True):
     name: str = Field(unique=True)
     description: str = Field(default=None)
     price: float
+    quantity: int
     created_at: datetime.datetime = Field(sa_column=Column(DateTime(timezone=True), default=datetime.datetime.now(datetime.UTC)))
     updated_at: Optional[datetime.datetime] = Field(sa_column=Column(DateTime(timezone=True), onupdate=datetime.datetime.now(datetime.UTC), default=None))
-    quantity: int
-    vendor_id: Optional[int] = Field(default=None, foreign_key="user.id")
-    vendor: Optional[User] = Relationship(back_populates="products")
+    vendor_id: int = Field(foreign_key="user.id")
+    vendor: User = Relationship(back_populates="products")
