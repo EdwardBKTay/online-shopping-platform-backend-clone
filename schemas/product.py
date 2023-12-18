@@ -1,11 +1,11 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from typing import Optional
 
 class ProductBase(BaseModel):
     name: str
     description: str
-    price: float
-    quantity: int
+    price: float = Field(default=0, ge=0)
+    quantity: int = Field(default=0, ge=0)
 
 class ProductCreate(ProductBase):
     pass
@@ -14,5 +14,5 @@ class ProductCreate(ProductBase):
 class ProductUpdate(ProductCreate):
     name: Optional[str] = None
     description: Optional[str] = None
-    price: Optional[float] = None
-    quantity: Optional[int] = None
+    price: Optional[float] = Field(default=None, ge=0)
+    quantity: Optional[int] = Field(default=None, ge=0)

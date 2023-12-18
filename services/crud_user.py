@@ -1,8 +1,9 @@
 from db.models import User
 from sqlmodel import Session, select
 from fastapi import HTTPException, Depends
+from fastapi.encoders import jsonable_encoder
 from schemas.user import UserCreate
-from auth.auth import get_password_hash, verify_password, read_public_key, oauth2_scheme, ALGORITHM
+from auth.auth import get_password_hash, read_public_key, oauth2_scheme, ALGORITHM
 from utils.deps import get_session
 from jose import jwt, ExpiredSignatureError, JWTError
 from pydantic import ValidationError
@@ -26,7 +27,7 @@ class CRUDUser:
     
     def create(self, db: Session, req_obj: UserCreate) -> User:
         pwd_hash = get_password_hash(req_obj.password.get_secret_value())
-        user_obj = User(**dict(req_obj), password_hash=pwd_hash, created_at=datetime.datetime.now(datetime.UTC))
+        user_obj = User(**jsonable_encoder(req_obj), password_hash=pwd_hash, created_at=datetime.datetime.now(datetime.UTC))
         
         try:
             db.add(user_obj)
@@ -60,6 +61,12 @@ def get_current_user(public_key: Annotated[bytes, Depends(read_public_key)], tok
             raise http_exception from e
         
         return db_obj
+
+def is_only_user(current_user: Annotated[User, Depends(get_current_user)]) -> User:
+    if current_user.is_vendor is True or current_user.is_superuser is True:
+        raise HTTPException(status_code=403, detail="User is not a customer")
+    
+    return current_user
 
 def is_user_vendor(current_user: Annotated[User, Depends(get_current_user)]) -> User:
     if current_user.is_vendor is False:

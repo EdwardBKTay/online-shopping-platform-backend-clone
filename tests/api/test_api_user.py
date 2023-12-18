@@ -64,7 +64,7 @@ def test_data():
         "is_vendor": False,
         "is_superuser": False
     }
-    
+
 def test_post_create_user(client: TestClient, session: Session, test_data: dict):
     response = client.post("/users/create", json=test_data, headers={"Content-Type": "application/json"})
     

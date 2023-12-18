@@ -132,8 +132,7 @@ def test_delete_product(client: TestClient, session: Session, login_vendor: tupl
         "Authorization": f"Bearer {token}"
     })
     
-    assert response.status_code == 200
-    assert response.json()["message"] == "Product deleted successfully"
+    assert response.status_code == 204
 
 def test_delete_unknown_product(client: TestClient, session: Session, login_vendor: tuple[str, User], create_product: dict):
     token, user_dict = login_vendor

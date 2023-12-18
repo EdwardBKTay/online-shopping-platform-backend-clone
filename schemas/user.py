@@ -1,5 +1,6 @@
 import re
 from fastapi import HTTPException, status
+from fastapi.exceptions import RequestValidationError
 from pydantic import EmailStr, SecretStr, field_serializer, Field, field_validator, SecretStr, BaseModel
 from datetime import datetime
 
@@ -19,7 +20,7 @@ class UserCreate(UserBase):
         re_compile = re.compile(r"^(?=.*?[A-Z])(?=.*?[a-z])(?=.*?[0-9])(?=.*?[@$!%*?&^_-])\S{8,}$")
         is_valid = re.fullmatch(re_compile, str_pwd)
         if is_valid is None:
-            raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY ,detail="Password must contain at least 8 characters, including at least one uppercase letter, one lowercase letter, one digit, one special character (@$!%*?&^_-), and no whitespace.")
+            raise RequestValidationError([{"loc": ["password"], "msg": "Password must be at least 8 characters long, contain at least one uppercase letter, one lowercase letter, one number, and one special character", "type": "value_error"}])
         return v
     
     @field_serializer("password", when_used="json")

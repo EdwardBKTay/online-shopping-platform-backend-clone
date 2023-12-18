@@ -1,8 +1,9 @@
 from fastapi import APIRouter, Depends, HTTPException
 from schemas.product import ProductCreate, ProductUpdate
 from services.crud_user import get_current_user, is_user_vendor
+from fastapi.encoders import jsonable_encoder
 from sqlalchemy.exc import IntegrityError
-from sqlmodel import Session
+from sqlmodel import Session, select
 from utils.deps import get_session
 from db.models import Product, User
 from typing import Annotated
@@ -10,10 +11,9 @@ import datetime
 
 products_router = APIRouter()
 
-# # TODO: Add CRUD operations for products and tests for them
 @products_router.post("/create/", status_code=201)
 async def create_new_product(req: ProductCreate, session: Annotated[Session, Depends(get_session)], current_user: Annotated[User, Depends(is_user_vendor)]):
-    new_product = Product(**dict(req), created_at=datetime.datetime.now(datetime.UTC), vendor=current_user)
+    new_product = Product(**jsonable_encoder(req), created_at=datetime.datetime.now(datetime.UTC), vendor=current_user)
     
     try:
         session.add(new_product)
@@ -50,7 +50,7 @@ async def update_product(product_id: int, req: ProductUpdate, session: Annotated
         session.rollback()
         raise HTTPException(status_code=409, detail="Product name duplicated") from e
 
-@products_router.delete("/{product_id}/delete/")
+@products_router.delete("/{product_id}/delete/", status_code=204)
 async def delete_product(product_id: int, session: Annotated[Session, Depends(get_session)], user: Annotated[User, Depends(is_user_vendor)]):
     product_obj = session.get(Product, product_id)
     
@@ -62,7 +62,7 @@ async def delete_product(product_id: int, session: Annotated[Session, Depends(ge
     
     session.delete(product_obj)
     session.commit()
-    return {"message": "Product deleted successfully"}
+    return
 
 @products_router.get("/{product_id}/", dependencies=[Depends(get_current_user)])
 async def get_product(product_id: int, session: Annotated[Session, Depends(get_session)]):
@@ -72,3 +72,8 @@ async def get_product(product_id: int, session: Annotated[Session, Depends(get_s
         raise HTTPException(status_code=404, detail="Product not found")
     
     return product_obj
+
+@products_router.get("/", dependencies=[Depends(get_current_user)])
+async def get_products(session: Annotated[Session, Depends(get_session)]):
+    products = session.exec(select(Product)).all()
+    return products
