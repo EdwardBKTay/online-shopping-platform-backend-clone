@@ -20,6 +20,7 @@ async def create_new_product(req: ProductCreate, session: Annotated[Session, Dep
     try:
         session.add(new_product)
         session.commit()
+        session.refresh(new_product)
         return new_product
     
     except IntegrityError as e:
@@ -27,13 +28,27 @@ async def create_new_product(req: ProductCreate, session: Annotated[Session, Dep
         raise HTTPException(status_code=409, detail="Product name duplicated") from e
     
 @products_router.get("/search/", dependencies=[Depends(get_current_user)])
-async def search_products(session: Annotated[Session, Depends(get_session)], q: str | None = None, offset: int  = 0, limit: int = Query(default=10, le=10)):
-    if q is None:
+async def search_products(session: Annotated[Session, Depends(get_session)], product_name: str | None = None, category: str | None = None, offset: int  = 0, limit: int = Query(default=10, le=10)):
+    if product_name is None and category is None:
         return []
-    stmt = select(Product).where(Product.name.ilike(f"%{q}%")).order_by(Product.name).offset(offset).limit(limit) # type: ignore
+    elif product_name is not None and category is None:
+        stmt = select(Product).where(Product.name.ilike(f"%{product_name}%")).order_by(Product.name).offset(offset).limit(limit) # type: ignore
+    elif product_name is None and category is not None:
+        stmt = select(Product).where(Product.category.has(Category.name.ilike(f"%{category}%"))).order_by(Product.name).offset(offset).limit(limit) # type: ignore
+    else:
+        stmt = select(Product).where(Product.name.ilike(f"%{product_name}%")).where(Product.category.has(Category.name.ilike(f"%{category}%"))).order_by(Product.name).offset(offset).limit(limit) # type: ignore
+        
     products = session.exec(stmt).all()
     return products
-    
+
+@products_router.get("/category/", dependencies=[Depends(get_current_user)])
+async def get_products_by_category(session: Annotated[Session, Depends(get_session)], category: str | None = None):
+    if category is None:
+        return []
+    stmt = select(Product).where(Product.category.has(Category.name.ilike(f"%{category}%"))).order_by(Product.name) # type: ignore
+    products = session.exec(stmt).all()
+    return products
+
 @products_router.put("/{product_id}/update/")
 async def update_product(product_id: int, req: ProductUpdate, session: Annotated[Session, Depends(get_session)], current_user: Annotated[User, Depends(is_user_vendor)]):
     product_obj = session.get(Product, product_id)

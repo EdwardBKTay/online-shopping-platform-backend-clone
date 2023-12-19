@@ -1,11 +1,10 @@
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, NonNegativeInt
 
 class CartBase(BaseModel):
-    product_id: int
-    quantity: int = Field(gt=0)
+    quantity: NonNegativeInt = Field(gt=0)
     
 class CartCreate(CartBase):
     pass
 
-class CartUpdate(BaseModel):
-    quantity: int = Field(gt=0)
+class CartUpdate(CartBase):
+    pass
