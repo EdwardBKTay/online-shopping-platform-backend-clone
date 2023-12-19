@@ -3,11 +3,11 @@ import pytest
 from sqlmodel import SQLModel
 from utils.deps import get_session
 from main import app
-from services.crud_user import user
 from fastapi.testclient import TestClient
 from sqlmodel import create_engine, Session
 from sqlmodel.pool import StaticPool
-from db.models import User, Product
+from db.models import *
+from utils.utils import set_default_product_categories
 import os
 
 @pytest.fixture(name="session")
@@ -19,6 +19,7 @@ def session_fixture():
     
     SQLModel.metadata.create_all(bind=engine)
     session = Session(bind=connection)
+    set_default_product_categories(session)
     
     yield session
     

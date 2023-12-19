@@ -8,7 +8,7 @@ pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/users/login")
 
-ACCESS_TOKEN_EXPIRATION_MINUTES = 5
+ACCESS_TOKEN_EXPIRATION_MINUTES = 15
 ALGORITHM = "RS256"
 
 def read_public_key():

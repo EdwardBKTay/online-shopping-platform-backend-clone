@@ -10,7 +10,7 @@ from pydantic import ValidationError
 from sqlalchemy.exc import IntegrityError
 from schemas.user import UserState
 from typing import Annotated
-import datetime
+from datetime import datetime
 
 class CRUDUser:
     def __init__(self, model: User):
@@ -27,7 +27,7 @@ class CRUDUser:
     
     def create(self, db: Session, req_obj: UserCreate) -> User:
         pwd_hash = get_password_hash(req_obj.password.get_secret_value())
-        user_obj = User(**jsonable_encoder(req_obj), password_hash=pwd_hash, created_at=datetime.datetime.now(datetime.UTC))
+        user_obj = User(**jsonable_encoder(req_obj), password_hash=pwd_hash, created_at=datetime.now())
         
         try:
             db.add(user_obj)
