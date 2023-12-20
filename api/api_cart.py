@@ -57,8 +57,8 @@ async def update_cart_items(username: str, cart_item_id: int, req: CartUpdate, s
     if cart_item is None:
         raise HTTPException(status_code=404, detail="Cart item not found")
     
-    if current_user.username != username or cart_item.cart.user.username != username:
-        raise HTTPException(status_code=403, detail="Unauthorized to update cart")
+    if current_user.username != username or cart_item.cart.user.username != current_user.username:
+        raise HTTPException(status_code=403, detail="Unauthorized to update other user's cart")
     
     product = session.get(Product, cart_item.product_id)
     
@@ -67,6 +67,8 @@ async def update_cart_items(username: str, cart_item_id: int, req: CartUpdate, s
     
     cart_item_data = req.model_dump(exclude_unset=True)
     for key, value in cart_item_data.items():
+        if key == "quantity" and product.available_quantity < value:
+            raise HTTPException(status_code=409, detail="Not enough stock")
         setattr(cart_item, key, value)
     
     cart_item.updated_at = datetime.datetime.now(datetime.UTC)
@@ -84,7 +86,7 @@ async def remove_cart_item(username: str, cart_item_id: int, session: Annotated[
         raise HTTPException(status_code=404, detail="Cart item not found")
     
     if current_user.username != username or cart_item.cart.user.username != username:
-        raise HTTPException(status_code=403, detail="Unauthorized to delete cart")
+        raise HTTPException(status_code=403, detail="Unauthorized to delete other user's cart")
     
     product = session.get(Product, cart_item.product_id)
     
