@@ -10,7 +10,9 @@ import datetime
 
 carts_router = APIRouter()
 
-# TODO: checkout route for checking out the cart, integrate with payment gateway, stripe, etc. 
+# TODO: checkout route for checking out the cart, integrate with payment gateway, stripe, etc.
+
+# TODO: Connect to exchange rate api to get the latest updated exchange rate for the goods in the cart 
 # https://medium.com/@chodvadiyasaurabh/integrating-stripe-payment-gateway-with-fastapi-a-comprehensive-guide-8fe4540b5a4
 
 # @carts_router.get("/{username}/checkout/", status_code=200)
