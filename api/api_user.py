@@ -4,12 +4,11 @@ from sqlmodel import Session
 from utils.deps import get_session
 from db.models import User
 from services.crud_user import user, get_current_user
-from schemas.user import UserBase, UserCreate, UserState
+from schemas.user import UserCreate, UserState
 from schemas.token import Token
 from typing import Annotated
 from auth.auth import ACCESS_TOKEN_EXPIRATION_MINUTES, private_key, create_access_token, verify_password
 from fastapi import Response
-from jose import jwt
 import datetime
 
 users_router = APIRouter()

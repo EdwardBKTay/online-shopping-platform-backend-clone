@@ -1,4 +1,4 @@
-from pydantic import BaseModel, Field, NonNegativeInt
+from pydantic import BaseModel, Field, PositiveInt
 from typing import Optional, Annotated
 from decimal import Decimal
 from enum import Enum
@@ -26,15 +26,15 @@ class ProductBase(BaseModel):
     description: str
     category_name: ProductCategory
     original_price: Decimal = Field(..., ge=0, decimal_places=2)
-    available_quantity: NonNegativeInt
+    available_quantity: PositiveInt
 
 class ProductCreate(ProductBase):
     pass
 
 # https://github.com/pydantic/pydantic/pull/7311 using Annotated rather than Optional for Decimal
 class ProductUpdate(ProductCreate):
-    name: Optional[str] = None
-    description: Optional[str] = None
-    category_name: Optional[ProductCategory] = None
+    name: str | None = None
+    description: str | None = None
+    category_name: ProductCategory | None = None
     original_price: Annotated[Decimal, Field(..., ge=0, decimal_places=2)] | None = None
-    available_quantity: Optional[NonNegativeInt]
+    available_quantity: PositiveInt | None = None

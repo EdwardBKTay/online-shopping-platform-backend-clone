@@ -4,8 +4,5 @@
 - create category for the products
 - create search filter for the products
 - implement refresh token
-- redo carts implementation - a many-to-many relationship between users and products
-
-https://www.geeksforgeeks.org/what-is-web-socket-and-how-it-is-different-from-the-http/
 
 https://stackoverflow.blog/2020/03/02/best-practices-for-rest-api-design/

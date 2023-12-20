@@ -45,7 +45,11 @@ async def search_products(session: Annotated[Session, Depends(get_session)], pro
 async def get_products_by_category(session: Annotated[Session, Depends(get_session)], category: str | None = None):
     if category is None:
         return []
-    stmt = select(Product).where(Product.category.has(Category.name.ilike(f"%{category}%"))).order_by(Product.name) # type: ignore
+    
+    if session.exec(select(Category).where(Category.name == category)).one_or_none() is None:
+        raise HTTPException(status_code=404, detail="Category not found")
+        
+    stmt = select(Product).where(Product.category.has(Category.name == category)).order_by(Product.name)
     products = session.exec(stmt).all()
     return products
 
@@ -59,19 +63,26 @@ async def update_product(product_id: int, req: ProductUpdate, session: Annotated
     if product_obj.vendor_id != current_user.id:
         raise HTTPException(status_code=403, detail="Unauthorized to update product")
     
-    category_obj = session.exec(select(Category).where(Category.name == req.category_name)).one_or_none()
     product_data = req.model_dump(exclude_unset=True)
     for key, value in product_data.items():
+        if key == "category_name":
+            continue
         setattr(product_obj, key, value)
+        
+    if req.category_name is not None:
+        category_obj = session.exec(select(Category).where(Category.name == req.category_name)).one_or_none()
+        if category_obj is None:
+            raise HTTPException(status_code=404, detail="Category not found")
+        
+        product_obj.category = category_obj
+
     product_obj.updated_at = datetime.datetime.now(datetime.UTC)
-    product_obj.category = category_obj
     
     try:
         session.add(product_obj)
         session.commit()
         session.refresh(product_obj)
         return product_obj
-    
     except IntegrityError as e:
         session.rollback()
         raise HTTPException(status_code=409, detail="Product name duplicated") from e

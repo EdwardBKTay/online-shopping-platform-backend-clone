@@ -48,8 +48,7 @@ async def get_user_cart(username: str, session: Annotated[Session, Depends(get_s
     if cart is None:
         raise HTTPException(status_code=404, detail="Cart not found")
     
-    stmt = select(CartItem).where(CartItem.cart == cart)
-    return session.exec(stmt).all()
+    return session.exec(select(CartItem).where(CartItem.cart == cart)).all()
 
 @carts_router.put("/{username}/{cart_item_id}/update", status_code=200)
 async def update_cart_items(username: str, cart_item_id: int, req: CartUpdate, session: Annotated[Session, Depends(get_session)], current_user: Annotated[User, Depends(is_only_user)]):

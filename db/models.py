@@ -22,6 +22,7 @@ class User(SQLModel, table=True):
     # reset_password_token: Optional[str] = Field(default=None)
     products: List["Product"] = Relationship(back_populates="vendor")
     cart: Optional["Cart"] = Relationship(back_populates="user")
+    # profile: Optional["Profile"] = Relationship(back_populates="user")
 
 class Product(SQLModel, table=True):
     """
@@ -73,3 +74,22 @@ class CartItem(SQLModel, table=True):
     quantity: int = Field(gt=0)
     created_at: datetime = Field(sa_column=Column(DateTime(timezone=True)))
     updated_at: Optional[datetime] = Field(default=None, sa_column=Column(DateTime(timezone=True), default=None))
+
+class Profile(SQLModel):
+    """
+    User Profile table
+    """
+    id: Optional[int] = Field(default=None, primary_key=True, index=True)
+    user_id: int = Field(foreign_key="user.id")
+    user: User = Relationship(back_populates="profile")
+    first_name: str
+    last_name: str
+    phone_number: str
+    address: str
+    city: str
+    state: str
+    country: str
+    zip_code: str
+    created_at: datetime = Field(sa_column=Column(DateTime(timezone=True)))
+    updated_at: Optional[datetime] = Field(default=None, sa_column=Column(DateTime(timezone=True), default=None))
+
