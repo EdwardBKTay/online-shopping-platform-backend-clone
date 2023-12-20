@@ -9,6 +9,7 @@ pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/users/login")
 
 ACCESS_TOKEN_EXPIRATION_MINUTES = 15
+REFRESH_TOKEN_EXPIRATION_MINUTES = 60 * 24 * 7
 ALGORITHM = "RS256"
 
 def read_public_key():
@@ -35,4 +36,9 @@ def verify_password(password: str, password_hash: str) -> bool:
 def create_access_token(user_data: UserState, private_key: bytes) -> str:
     payload = user_data.model_dump().copy()
     encoded_token = jwt.encode(payload, private_key, algorithm=ALGORITHM)
+    return encoded_token
+
+def create_refresh_token(user_data: UserState, secret_key: str) -> str:
+    payload = user_data.model_dump().copy()
+    encoded_token = jwt.encode(payload, secret_key, algorithm="HS256")
     return encoded_token

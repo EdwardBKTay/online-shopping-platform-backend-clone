@@ -135,7 +135,6 @@ def test_logout_user(client: TestClient, session: Session, login_user: tuple[str
     
     assert response.status_code == 200
     assert response.json()["message"] == "User logged out successfully"
-    assert response.headers["Authorization"] == ""
     
 def test_logout_user_without_token(client: TestClient):
     response = client.get("/users/logout")

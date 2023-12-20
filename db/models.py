@@ -1,3 +1,5 @@
+# Database design reference: https://appmaster.io/blog/how-to-design-a-shopping-cart-database
+
 from typing import Optional, List
 from sqlmodel import SQLModel, Field, Column, Relationship, DateTime
 from decimal import Decimal
@@ -18,11 +20,10 @@ class User(SQLModel, table=True):
     is_vendor: bool = Field(default=False)
     is_superuser: bool = Field(default=False)
     auth_token: Optional[str] = Field(default=None)
-    # refresh_token: Optional[str] = Field(default=None)
+    refresh_token: Optional[str] = Field(default=None)
     # reset_password_token: Optional[str] = Field(default=None)
     products: List["Product"] = Relationship(back_populates="vendor")
     cart: Optional["Cart"] = Relationship(back_populates="user")
-    # profile: Optional["Profile"] = Relationship(back_populates="user")
 
 class Product(SQLModel, table=True):
     """
@@ -75,21 +76,26 @@ class CartItem(SQLModel, table=True):
     created_at: datetime = Field(sa_column=Column(DateTime(timezone=True)))
     updated_at: Optional[datetime] = Field(default=None, sa_column=Column(DateTime(timezone=True), default=None))
 
-class Profile(SQLModel):
-    """
-    User Profile table
-    """
-    id: Optional[int] = Field(default=None, primary_key=True, index=True)
-    user_id: int = Field(foreign_key="user.id")
-    user: User = Relationship(back_populates="profile")
-    first_name: str
-    last_name: str
-    phone_number: str
-    address: str
-    city: str
-    state: str
-    country: str
-    zip_code: str
-    created_at: datetime = Field(sa_column=Column(DateTime(timezone=True)))
-    updated_at: Optional[datetime] = Field(default=None, sa_column=Column(DateTime(timezone=True), default=None))
+# class Order(SQLModel):
+#     """
+#     Order database model for deals that have checked out
+#     """
+#     id: Optional[int] = Field(default=None, primary_key=True, index=True)
+#     user_id: int = Field(foreign_key="user.id")
+#     user: User = Relationship(back_populates="orders")
+#     created_at: datetime = Field(sa_column=Column(DateTime(timezone=True)))
+#     updated_at: Optional[datetime] = Field(default=None, sa_column=Column(DateTime(timezone=True), default=None))
+#     order_items: List["OrderItem"] = Relationship(back_populates="order")
 
+# class OrderItem(SQLModel):
+#     """
+#     Order items table that ties a specific product to a specific order
+#     """
+#     id: Optional[int] = Field(default=None, primary_key=True, index=True)
+#     order_id: int = Field(foreign_key="order.id")
+#     order: Order = Relationship(back_populates="order_items")
+#     product_id: int = Field(foreign_key="product.id")
+#     product: Product = Relationship(back_populates="order_items")
+#     quantity: int = Field(gt=0)
+#     created_at: datetime = Field(sa_column=Column(DateTime(timezone=True)))
+#     updated_at: Optional[datetime] = Field(default=None, sa_column=Column(DateTime(timezone=True), default=None))

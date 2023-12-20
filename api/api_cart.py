@@ -10,7 +10,36 @@ import datetime
 
 carts_router = APIRouter()
 
-@carts_router.post("/{username}/add/{product_id}", status_code=201)
+# TODO: checkout route for checking out the cart, integrate with payment gateway, stripe, etc. 
+# https://medium.com/@chodvadiyasaurabh/integrating-stripe-payment-gateway-with-fastapi-a-comprehensive-guide-8fe4540b5a4
+
+# @carts_router.get("/{username}/checkout/", status_code=200)
+# async def checkout_cart(username: str, session: Annotated[Session, Depends(get_session)], current_user: Annotated[User, Depends(is_only_user)]):
+#     if username != current_user.username:
+#         raise HTTPException(status_code=403, detail="Unauthorized to checkout other user's cart")
+    
+#     cart = session.exec(select(Cart).where(Cart.user == current_user)).one_or_none()
+    
+#     if cart is None:
+#         raise HTTPException(status_code=404, detail="Cart not found")
+    
+#     cart_items = session.exec(select(CartItem).where(CartItem.cart == cart)).all()
+    
+#     for cart_item in cart_items:
+#         product = session.get(Product, cart_item.product_id)
+#         if product is None:
+#             raise HTTPException(status_code=404, detail="Product not found")
+#         if product.available_quantity < cart_item.quantity:
+#             raise HTTPException(status_code=409, detail="Not enough stock")
+#         product.available_quantity -= cart_item.quantity
+#         session.add(product)
+#         session.delete(cart_item)
+#         session.delete(cart)
+    
+#     session.commit()
+#     return {"message": "Checkout successful"}
+
+@carts_router.post("/{username}/add/{product_id}/", status_code=201)
 async def add_to_cart(product_id: int, username: str, req: CartCreate, session: Annotated[Session, Depends(get_session)], user: Annotated[User, Depends(is_only_user)]):
     product = session.get(Product, product_id)
     
@@ -50,7 +79,7 @@ async def get_user_cart(username: str, session: Annotated[Session, Depends(get_s
     
     return session.exec(select(CartItem).where(CartItem.cart == cart)).all()
 
-@carts_router.put("/{username}/{cart_item_id}/update", status_code=200)
+@carts_router.put("/{username}/{cart_item_id}/update/", status_code=200)
 async def update_cart_items(username: str, cart_item_id: int, req: CartUpdate, session: Annotated[Session, Depends(get_session)], current_user: Annotated[User, Depends(is_only_user)]):
     cart_item = session.get(CartItem, cart_item_id)
     
@@ -78,7 +107,7 @@ async def update_cart_items(username: str, cart_item_id: int, req: CartUpdate, s
     session.refresh(cart_item)
     return cart_item
 
-@carts_router.delete("/{username}/{cart_item_id}/delete", status_code=204)
+@carts_router.delete("/{username}/{cart_item_id}/delete/", status_code=204)
 async def remove_cart_item(username: str, cart_item_id: int, session: Annotated[Session, Depends(get_session)], current_user: Annotated[User, Depends(is_only_user)]):
     cart_item = session.get(CartItem, cart_item_id)
     
