@@ -8,11 +8,11 @@ from sqlmodel import create_engine, Session
 from sqlmodel.pool import StaticPool
 from db.models import *
 from utils.utils import set_default_product_categories
-import os
+from core.config import settings
 
 @pytest.fixture(name="session")
 def session_fixture():
-    TEST_DB_URL = f"postgresql+psycopg2://{os.getenv("DB_USERNAME")}:{os.getenv("DB_PASSWORD")}@localhost:5432/{os.getenv("TEST_DB_NAME")}"
+    TEST_DB_URL = f"postgresql+psycopg2://{settings.DB_USERNAME}:{settings.DB_PASSWORD}@localhost:5432/{settings.TEST_DB_NAME}"
     
     engine = create_engine(TEST_DB_URL, poolclass=StaticPool)
     connection = engine.connect()

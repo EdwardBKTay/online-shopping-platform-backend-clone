@@ -1,0 +1,23 @@
+[
+    {
+        "username": "testuser",
+        "email": "testuser@example.com",
+        "password": "Test_1234!",
+        "is_superuser": false,
+        "is_vendor": false
+    },
+    {
+        "username": "testvendor",
+        "email": "testvendor@example.com",
+        "password": "Test_1234!",
+        "is_superuser": false,
+        "is_vendor": true
+    },
+    {
+        "username": "testadmin",
+        "email": "testadmin@example.com",
+        "password": "Test_1234!",
+        "is_superuser": true,
+        "is_vendor": false
+    }
+]

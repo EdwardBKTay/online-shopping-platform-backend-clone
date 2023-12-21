@@ -3,12 +3,13 @@ from sqlmodel import Session, select
 from fastapi import HTTPException, Depends
 from fastapi.encoders import jsonable_encoder
 from schemas.user import UserCreate
-from auth.auth import get_password_hash, read_public_key, oauth2_scheme, ALGORITHM
+from auth.auth import get_password_hash, read_public_key, oauth2_scheme
 from utils.deps import get_session
 from jose import jwt, ExpiredSignatureError, JWTError
 from pydantic import ValidationError
 from sqlalchemy.exc import IntegrityError
 from schemas.user import UserState
+from core.config import settings
 from typing import Annotated
 from datetime import datetime
 
@@ -44,7 +45,7 @@ def get_current_user(public_key: Annotated[bytes, Depends(read_public_key)], tok
         http_exception = HTTPException(status_code=401, detail="Invalid authentication credentials", headers={"WWW-Authenticate": "Bearer"})
         
         try:
-            payload = jwt.decode(token, public_key, algorithms=[ALGORITHM], options={"verify_signature": True})
+            payload = jwt.decode(token, public_key, algorithms=[settings.ACCESS_TOKEN_ALGORITHM], options={"verify_signature": True})
             token_data = UserState.model_validate(payload, strict=True)
             db_obj = user.get_username(session, token_data.username)
             if db_obj.auth_token != token:

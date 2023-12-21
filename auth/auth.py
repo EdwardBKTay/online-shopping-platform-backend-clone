@@ -2,15 +2,12 @@ from fastapi.security import OAuth2PasswordBearer
 from passlib.context import CryptContext
 from jose import jwt
 from schemas.user import UserState
+from core.config import settings
 import os
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/users/login")
-
-ACCESS_TOKEN_EXPIRATION_MINUTES = 15
-REFRESH_TOKEN_EXPIRATION_MINUTES = 60 * 24 * 7
-ALGORITHM = "RS256"
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl=settings.TOKEN_URL)
 
 def read_public_key():
     current_dir = os.getcwd()
@@ -35,10 +32,10 @@ def verify_password(password: str, password_hash: str) -> bool:
 
 def create_access_token(user_data: UserState, private_key: bytes) -> str:
     payload = user_data.model_dump().copy()
-    encoded_token = jwt.encode(payload, private_key, algorithm=ALGORITHM)
+    encoded_token = jwt.encode(payload, private_key, algorithm=settings.ACCESS_TOKEN_ALGORITHM)
     return encoded_token
 
 def create_refresh_token(user_data: UserState, secret_key: str) -> str:
     payload = user_data.model_dump().copy()
-    encoded_token = jwt.encode(payload, secret_key, algorithm="HS256")
+    encoded_token = jwt.encode(payload, secret_key, algorithm=settings.REFRESH_TOKEN_ALGORITHM)
     return encoded_token

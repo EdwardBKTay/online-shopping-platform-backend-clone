@@ -10,14 +10,11 @@ from services.crud_user import user, get_current_user
 from schemas.user import UserCreate, UserState
 from schemas.token import Token, RefreshToken
 from typing import Annotated
-from auth.auth import ACCESS_TOKEN_EXPIRATION_MINUTES, private_key, create_access_token, verify_password, create_refresh_token, REFRESH_TOKEN_EXPIRATION_MINUTES
+from auth.auth import private_key, create_access_token, verify_password, create_refresh_token
 from fastapi import Response
 from jose import jwt, JWTError, ExpiredSignatureError
-from dotenv import load_dotenv
+from core.config import settings
 import datetime
-import os
-
-load_dotenv()
 
 users_router = APIRouter()
 
@@ -29,23 +26,18 @@ async def create_user(session: Annotated[Session, Depends(get_session)], req: Us
 async def login_for_token(form_data: Annotated[OAuth2PasswordRequestForm, Depends()], session: Annotated[Session, Depends(get_session)]):
     http_exception = HTTPException(status_code=401, detail="Invalid user credentials")
     
-    refresh_token_secret_key = os.getenv("REFRESH_TOKEN_SECRET_KEY")
-    
-    if refresh_token_secret_key is None:
-        raise Exception("REFRESH_TOKEN_SECRET_KEY environment variable not found")
-    
     user_obj = user.get_username(session, form_data.username)
     is_pwd_valid = verify_password(form_data.password, user_obj.password_hash)
     
     if is_pwd_valid is False:
         raise http_exception
     
-    access_token_payload = UserState(username=user_obj.username, email=user_obj.email, is_vendor=user_obj.is_vendor, is_superuser=user_obj.is_superuser,exp=datetime.datetime.now(datetime.UTC) + datetime.timedelta(minutes=ACCESS_TOKEN_EXPIRATION_MINUTES))
+    access_token_payload = UserState(username=user_obj.username, email=user_obj.email, is_vendor=user_obj.is_vendor, is_superuser=user_obj.is_superuser,exp=datetime.datetime.now(datetime.UTC) + datetime.timedelta(seconds=settings.ACCESS_TOKEN_EXPIRATION_SECONDS))
     
-    refresh_token_payload = UserState(username=user_obj.username, email=user_obj.email, is_vendor=user_obj.is_vendor, is_superuser=user_obj.is_superuser,exp=datetime.datetime.now(tz=datetime.UTC) + datetime.timedelta(minutes=REFRESH_TOKEN_EXPIRATION_MINUTES))
+    refresh_token_payload = UserState(username=user_obj.username, email=user_obj.email, is_vendor=user_obj.is_vendor, is_superuser=user_obj.is_superuser,exp=datetime.datetime.now(tz=datetime.UTC) + datetime.timedelta(seconds=settings.REFRESH_TOKEN_EXPIRATION_SECONDS))
     
     access_token = create_access_token(access_token_payload, private_key)
-    refresh_token = create_refresh_token(refresh_token_payload, refresh_token_secret_key)
+    refresh_token = create_refresh_token(refresh_token_payload, settings.REFRESH_TOKEN_SECRET_KEY)
     
     user_obj.last_signed_in = datetime.datetime.now(datetime.UTC)
     user_obj.auth_token = access_token
@@ -73,13 +65,8 @@ async def get_user(username: str, session: Annotated[Session, Depends(get_sessio
 
 @users_router.post("/token/refresh/", response_model=Token)
 async def refresh_access_token(req: RefreshToken, session: Annotated[Session, Depends(get_session)]):
-    refresh_token_secret_key = os.getenv("REFRESH_TOKEN_SECRET_KEY")
-    
-    if refresh_token_secret_key is None:
-        raise Exception("REFRESH_TOKEN_SECRET_KEY environment variable not found")
-    
     try:
-        decoded_token = jwt.decode(req.refresh_token, refresh_token_secret_key, algorithms=["HS256"])
+        decoded_token = jwt.decode(req.refresh_token, settings.REFRESH_TOKEN_SECRET_KEY, algorithms=[settings.REFRESH_TOKEN_ALGORITHM])
         decoded_token = UserState.model_validate(decoded_token)
     except ExpiredSignatureError as e:
         raise HTTPException(status_code=401, detail="Refresh token expired") from e
@@ -91,12 +78,12 @@ async def refresh_access_token(req: RefreshToken, session: Annotated[Session, De
     if db_user.refresh_token != req.refresh_token:
         raise HTTPException(status_code=401, detail="Invalid refresh token")
     
-    new_access_token_payload = UserState(username=db_user.username, email=db_user.email, is_vendor=db_user.is_vendor, is_superuser=db_user.is_superuser,exp=datetime.datetime.now(datetime.UTC) + datetime.timedelta(minutes=ACCESS_TOKEN_EXPIRATION_MINUTES))
+    new_access_token_payload = UserState(username=db_user.username, email=db_user.email, is_vendor=db_user.is_vendor, is_superuser=db_user.is_superuser,exp=datetime.datetime.now(datetime.UTC) + datetime.timedelta(seconds=settings.ACCESS_TOKEN_EXPIRATION_SECONDS))
     
-    new_refresh_token_payload = UserState(username=db_user.username, email=db_user.email, is_vendor=db_user.is_vendor, is_superuser=db_user.is_superuser,exp=datetime.datetime.now(datetime.UTC) + datetime.timedelta(minutes=REFRESH_TOKEN_EXPIRATION_MINUTES))
+    new_refresh_token_payload = UserState(username=db_user.username, email=db_user.email, is_vendor=db_user.is_vendor, is_superuser=db_user.is_superuser,exp=datetime.datetime.now(datetime.UTC) + datetime.timedelta(seconds=settings.REFRESH_TOKEN_EXPIRATION_SECONDS))
     
     new_access_token = create_access_token(new_access_token_payload, private_key)
-    new_refresh_token = create_refresh_token(new_refresh_token_payload, refresh_token_secret_key)
+    new_refresh_token = create_refresh_token(new_refresh_token_payload, settings.REFRESH_TOKEN_SECRET_KEY)
     
     db_user.auth_token = new_access_token
     db_user.refresh_token = new_refresh_token

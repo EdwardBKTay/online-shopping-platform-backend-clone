@@ -1,13 +1,10 @@
 from sqlmodel import create_engine
 from sqlalchemy.exc import DBAPIError
-from dotenv import load_dotenv
 from typing import Any
 from db.models import *
-import os
+from core.config import settings
 
-load_dotenv()
-
-DB_URL = f"postgresql+psycopg2://{os.getenv("DB_USERNAME")}:{os.getenv("DB_PASSWORD")}@localhost:5432/{os.getenv("DB_NAME")}"
+DB_URL = f"postgresql+psycopg2://{settings.DB_USERNAME}:{settings.DB_PASSWORD}@localhost:5432/{settings.DB_NAME}"
 
 def get_db(connection_string: str, connection_option: dict[str, Any]):
     if connection_option is None:
