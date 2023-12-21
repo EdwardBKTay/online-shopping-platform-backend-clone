@@ -10,7 +10,7 @@ from services.crud_user import user, get_current_user
 from schemas.user import UserCreate, UserState
 from schemas.token import Token, RefreshToken
 from typing import Annotated
-from auth.auth import private_key, create_access_token, verify_password, create_refresh_token
+from auth.auth import read_private_key, create_access_token, verify_password, create_refresh_token
 from fastapi import Response
 from jose import jwt, JWTError, ExpiredSignatureError
 from core.config import settings
@@ -36,7 +36,7 @@ async def login_for_token(form_data: Annotated[OAuth2PasswordRequestForm, Depend
     
     refresh_token_payload = UserState(username=user_obj.username, email=user_obj.email, is_vendor=user_obj.is_vendor, is_superuser=user_obj.is_superuser,exp=datetime.datetime.now(tz=datetime.UTC) + datetime.timedelta(seconds=settings.REFRESH_TOKEN_EXPIRATION_SECONDS))
     
-    access_token = create_access_token(access_token_payload, private_key)
+    access_token = create_access_token(access_token_payload, read_private_key())
     refresh_token = create_refresh_token(refresh_token_payload, settings.REFRESH_TOKEN_SECRET_KEY)
     
     user_obj.last_signed_in = datetime.datetime.now(datetime.UTC)
@@ -82,7 +82,7 @@ async def refresh_access_token(req: RefreshToken, session: Annotated[Session, De
     
     new_refresh_token_payload = UserState(username=db_user.username, email=db_user.email, is_vendor=db_user.is_vendor, is_superuser=db_user.is_superuser,exp=datetime.datetime.now(datetime.UTC) + datetime.timedelta(seconds=settings.REFRESH_TOKEN_EXPIRATION_SECONDS))
     
-    new_access_token = create_access_token(new_access_token_payload, private_key)
+    new_access_token = create_access_token(new_access_token_payload, read_private_key())
     new_refresh_token = create_refresh_token(new_refresh_token_payload, settings.REFRESH_TOKEN_SECRET_KEY)
     
     db_user.auth_token = new_access_token

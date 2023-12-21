@@ -3,26 +3,26 @@ from passlib.context import CryptContext
 from jose import jwt
 from schemas.user import UserState
 from core.config import settings
+from functools import lru_cache
 import os
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl=settings.TOKEN_URL)
 
+@lru_cache(maxsize=1)
 def read_public_key():
     current_dir = os.getcwd()
-    public_key_path = os.path.join(current_dir, "public_key.pem")
+    public_key_path = os.path.join(current_dir, settings.PUBLIC_KEY_PATH)
     with open(public_key_path, "rb") as file:
         return file.read()
     
+@lru_cache(maxsize=1)
 def read_private_key():
     current_dir = os.getcwd()
-    private_key_path = os.path.join(current_dir, "private_key.pem")
+    private_key_path = os.path.join(current_dir, settings.PRIVATE_KEY_PATH)
     with open(private_key_path, "rb") as file:
         return file.read()
-
-public_key = read_public_key()
-private_key = read_private_key()
 
 def get_password_hash(password: str) -> str:
     return pwd_context.hash(password)

@@ -7,7 +7,7 @@ from sqlmodel import Session
 from fastapi import HTTPException, status
 from services.crud_user import user, get_current_user
 from tests.test_main import session_fixture
-from auth.auth import public_key, create_access_token, private_key
+from auth.auth import read_public_key, create_access_token, read_private_key
 import datetime
 
 class TestCRUDUser:
@@ -71,7 +71,7 @@ class TestCRUDUser:
     def create_test_user(self, session: Session, user_data: UserCreate):
         user_obj = user.create(session, user_data)
         payload = UserState(username=user_obj.username, email=user_obj.email, is_vendor=user_obj.is_vendor, is_superuser=user_obj.is_superuser, exp=datetime.datetime.now(datetime.UTC) + datetime.timedelta(minutes=15))
-        token = create_access_token(payload, private_key)
+        token = create_access_token(payload, read_private_key())
         user_obj.auth_token = token
         session.add(user_obj)
         session.commit()
@@ -82,7 +82,7 @@ class TestCRUDUser:
     def test_get_current_user(self, session: Session, create_test_user: tuple[User, str]):
         user_obj, token = create_test_user
         
-        user_dict = get_current_user(public_key, token, session)
+        user_dict = get_current_user(read_public_key(), token, session)
         print(user_dict)
         
         if user_dict is None:
@@ -95,7 +95,7 @@ class TestCRUDUser:
     def test_get_current_user_bad_token(self, session: Session, create_test_user: tuple[User, str]):
         
         with pytest.raises(HTTPException) as exc_info:
-            get_current_user(public_key, "bad_token", session)
+            get_current_user(read_public_key(), "bad_token", session)
         
         assert exc_info.value.status_code == 401
         assert exc_info.value.detail == "Invalid authentication credentials"
@@ -104,14 +104,14 @@ class TestCRUDUser:
         user_obj = user.create(session, user_data)
         
         payload = UserState(username=user_obj.username, email=user_obj.email, is_vendor=user_obj.is_vendor, is_superuser=user_obj.is_superuser, exp=datetime.datetime.now(datetime.UTC) - datetime.timedelta(seconds=5))
-        token = create_access_token(payload, private_key)
+        token = create_access_token(payload, read_private_key())
         user_obj.auth_token = token
         session.add(user_obj)
         session.commit()
         session.refresh(user_obj)
         
         with pytest.raises(HTTPException) as exc_info:
-            get_current_user(public_key, token, session)
+            get_current_user(read_public_key(), token, session)
         
         assert exc_info.value.status_code == 401
         assert exc_info.value.detail == "Token has expired"

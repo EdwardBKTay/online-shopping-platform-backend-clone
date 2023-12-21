@@ -1,6 +1,6 @@
 import pytest
 
-from auth.auth import get_password_hash, verify_password, create_access_token, private_key, public_key
+from auth.auth import get_password_hash, verify_password, create_access_token, read_private_key, read_public_key
 from pydantic import SecretStr
 from jose import jwt
 from schemas.user import UserState
@@ -23,9 +23,9 @@ def test_verify_password():
 def test_create_access_token():
     user_state = UserState(username="testuser", email="testuser@example.com", exp=datetime.datetime.now(datetime.UTC) + datetime.timedelta(minutes=15), is_vendor=False, is_superuser=False)
     
-    access_token = create_access_token(user_state, private_key)
+    access_token = create_access_token(user_state, read_private_key())
     
-    decoded_token = jwt.decode(access_token, public_key, algorithms=["RS256"])
+    decoded_token = jwt.decode(access_token, read_public_key(), algorithms=["RS256"])
     
     assert isinstance(access_token, str)
     assert user_state.username == decoded_token["username"]
