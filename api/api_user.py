@@ -5,7 +5,7 @@ from fastapi.security import OAuth2PasswordRequestForm
 from pydantic import ValidationError
 from sqlmodel import Session
 from utils.deps import get_session
-from db.models import User
+from db.models import User, UserRead, UserReadAll
 from services.crud_user import user, get_current_user
 from schemas.user import UserCreate, UserState
 from schemas.token import Token, RefreshToken
@@ -18,7 +18,11 @@ import datetime
 
 users_router = APIRouter()
 
-@users_router.post("/create/", status_code=201)
+# TODO: create a new endpoint for user login using application/json
+# TODO: create a new endpoint for reset-password
+# TODO: create a new endpoint for changing email & email verification
+
+@users_router.post("/create/", status_code=201, response_model=UserRead)
 async def create_user(session: Annotated[Session, Depends(get_session)], req: UserCreate):
     return user.create(session, req)
 
@@ -57,7 +61,7 @@ async def logout_user(current_user: Annotated[User, Depends(get_current_user)], 
     
     return {"message": "User logged out successfully"}
 
-@users_router.get("/{username}/")
+@users_router.get("/{username}/", response_model=UserReadAll)
 async def get_user(username: str, session: Annotated[Session, Depends(get_session)], current_user: Annotated[User, Depends(get_current_user)]):
     if current_user.username != username:
         raise HTTPException(status_code=403, detail="Not allowed to access other user's data")

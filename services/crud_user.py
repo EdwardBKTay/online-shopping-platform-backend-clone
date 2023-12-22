@@ -1,4 +1,4 @@
-from db.models import User
+from db.models import User, UserRead
 from sqlmodel import Session, select
 from fastapi import HTTPException, Depends
 from fastapi.encoders import jsonable_encoder
@@ -26,7 +26,7 @@ class CRUDUser:
         
         return result
     
-    def create(self, db: Session, req_obj: UserCreate) -> User:
+    def create(self, db: Session, req_obj: UserCreate):
         pwd_hash = get_password_hash(req_obj.password.get_secret_value())
         user_obj = User(**jsonable_encoder(req_obj), password_hash=pwd_hash, created_at=datetime.now())
         

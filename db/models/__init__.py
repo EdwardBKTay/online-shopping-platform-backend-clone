@@ -28,11 +28,20 @@ class User(UserBase, table=True):
 class UserRead(UserBase):
     id: int
     
+class UserReadWithProduct(UserRead):
+    products: List["ProductRead"] = []
+    
+class UserReadWithCart(UserRead):
+    cart: Optional["CartRead"] = None
+    
+class UserReadWithOrder(UserRead):
+    orders: List["OrderRead"] = []
+    
+
 class ProductBase(SQLModel):
     name: str = Field(unique=True)
     description: str
     category_id: int = Field(foreign_key="category.id")
-    category: "Category" = Relationship(back_populates="products")
     original_price: Decimal = Field(default=0, decimal_places=2, ge=0)
     available_quantity: int = Field(default=0, ge=0)
     created_at: datetime = Field(sa_column=Column(DateTime(timezone=True)))
@@ -40,23 +49,22 @@ class ProductBase(SQLModel):
     
     vendor_id: int = Field(foreign_key="user.id")
 
-class Product(SQLModel, table=True):
+class Product(ProductBase, table=True):
     id: Optional[int] = Field(default=None, primary_key=True, index=True)
-    name: str = Field(unique=True)
-    description: str
-    category_id: int = Field(foreign_key="category.id")
-    category: "Category" = Relationship(back_populates="products")
-    original_price: Decimal = Field(default=0, decimal_places=2, ge=0)
-    available_quantity: int = Field(default=0, ge=0)
-    created_at: datetime = Field(sa_column=Column(DateTime(timezone=True)))
-    updated_at: Optional[datetime] = Field(default=None, sa_column=Column(DateTime(timezone=True), default=None))
-    vendor_id: int = Field(foreign_key="user.id")
+    
     vendor: User = Relationship(back_populates="products")
     cart_items: List["CartItem"] = Relationship(back_populates="product")
     order_items: List["OrderItem"] = Relationship(back_populates="product")
+    category: "Category" = Relationship(back_populates="products")
 
 class ProductRead(ProductBase):
     id: int
+    
+class ProductReadWithVendor(ProductRead):
+    vendor: UserRead
+    
+class ProductReadWithCartItems(ProductRead):
+    cart_items: List["CartItemRead"] = []
     
 class CategoryBase(SQLModel):
     name: str = Field(unique=True)
@@ -71,6 +79,8 @@ class Category(CategoryBase, table=True):
 class CategoryRead(CategoryBase):
     id: int
     
+    products: List["ProductRead"] = []
+    
 class CartBase(SQLModel):
     user_id: Optional[int] = Field(default=None, foreign_key="user.id")
     created_at: datetime = Field(sa_column=Column(DateTime(timezone=True)))
@@ -84,7 +94,13 @@ class Cart(CartBase, table=True):
 
 class CartRead(CartBase):
     id: int
-
+    
+class CartReadWithUser(CartRead):
+    user: Optional[UserRead] = None
+    
+class CartReadWithCartItems(CartRead):
+    cart_items: List["CartItemRead"] = []
+    
 class CartItemBase(SQLModel):
     cart_id: Optional[int] = Field(default=None, foreign_key="cart.id")
     product_id: Optional[int] = Field(default=None, foreign_key="product.id")
@@ -101,7 +117,18 @@ class CartItem(CartItemBase, table=True):
 class CartItemRead(CartItemBase):
     id: int
     
+class CartItemReadWithCart(CartItemRead):
+    cart: Optional[CartRead] = None
+    
+class CartItemReadWithProduct(CartItemRead):
+    product: Optional[ProductRead] = None
+    
+class CartItemReadAll(CartItemRead):
+    cart: Optional[CartRead] = None
+    product: Optional[ProductRead] = None
+    
 class OrderBase(SQLModel):
+    total_price: Decimal = Field(default=0, decimal_places=2, ge=0)
     user_id: int = Field(foreign_key="user.id")
     created_at: datetime = Field(sa_column=Column(DateTime(timezone=True)))
     updated_at: Optional[datetime] = Field(default=None, sa_column=Column(DateTime(timezone=True), default=None))
@@ -114,6 +141,9 @@ class Order(OrderBase, table=True):
 
 class OrderRead(OrderBase):
     id: int
+    
+    user: UserRead
+    order_items: List["OrderItemReadWithProduct"] = []
 
 class OrderItemBase(SQLModel):
     order_id: Optional[int] = Field(default=None, foreign_key="order.id")
@@ -130,7 +160,18 @@ class OrderItem(OrderItemBase, table=True):
 
 class OrderItemRead(OrderItemBase):
     id: int
+
+class OrderItemReadWithOrder(OrderItemRead):
+    order: Optional[OrderRead] = None
     
+class OrderItemReadWithProduct(OrderItemRead):
+    product: Optional[ProductRead] = None
 
-
-
+class UserReadAll(UserRead):
+    products: List[ProductRead] = []
+    cart: Optional[CartReadWithCartItems] = None
+    orders: List[OrderRead] = []
+    
+class CartReadAll(CartRead):
+    user: Optional[UserRead] = None
+    cart_items: List[CartItemReadWithProduct] = []

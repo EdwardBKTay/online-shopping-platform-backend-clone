@@ -313,3 +313,33 @@ def test_delete_cart_items_not_cart_item(client: TestClient, session: Session, a
     
     assert response.status_code == 404
     assert response.json()["detail"] == "Cart item not found"
+
+def test_checkout_cart(client: TestClient, session: Session, add_items_to_cart: tuple[str, Cart, User]):
+    token, cart_data, user_dict = add_items_to_cart
+    
+    response = client.get(f"/carts/{user_dict.username}/checkout", headers={
+        "Authorization": f"Bearer {token}"
+    })
+    
+    assert response.status_code == 200
+    assert response.json()["total_price"] == "50.00"
+    assert response.json()["created_at"] is not None
+    assert response.json()["updated_at"] is None
+
+def test_checkout_cart_without_token(client: TestClient, session: Session, add_items_to_cart: tuple[str, Cart, User]):
+    token, cart_data, user_dict = add_items_to_cart
+    
+    response = client.get(f"/carts/{user_dict.username}/checkout")
+    
+    assert response.status_code == 401
+    assert response.json()["detail"] == "Not authenticated"
+    
+def test_checkout_cart_not_user(client: TestClient, session: Session, login_vendor: tuple[str, User], create_product: dict):
+    token, user_dict = login_vendor
+    
+    response = client.get(f"/carts/{user_dict.username}/checkout", headers={
+        "Authorization": f"Bearer {token}"
+    })
+    
+    assert response.status_code == 403
+    assert response.json()["detail"] == "User is not a customer"

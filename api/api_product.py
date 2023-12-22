@@ -5,13 +5,13 @@ from fastapi.encoders import jsonable_encoder
 from sqlalchemy.exc import IntegrityError
 from sqlmodel import Session, select
 from utils.deps import get_session
-from db.models import Product, User, Category
-from typing import Annotated
+from db.models import Product, User, Category, ProductReadWithVendor
+from typing import Annotated, Sequence
 import datetime
 
 products_router = APIRouter()
 
-@products_router.post("/create/", status_code=201)
+@products_router.post("/create/", status_code=201, response_model=ProductReadWithVendor)
 async def create_new_product(req: ProductCreate, session: Annotated[Session, Depends(get_session)], current_user: Annotated[User, Depends(is_user_vendor)]):
     category = session.exec(select(Category).where(Category.name == req.category_name)).one()
     
@@ -27,7 +27,7 @@ async def create_new_product(req: ProductCreate, session: Annotated[Session, Dep
         session.rollback()
         raise HTTPException(status_code=409, detail="Product name duplicated") from e
     
-@products_router.get("/search/", dependencies=[Depends(get_current_user)])
+@products_router.get("/search/", dependencies=[Depends(get_current_user)], response_model=Sequence[ProductReadWithVendor])
 async def search_products(session: Annotated[Session, Depends(get_session)], product_name: str | None = None, category: str | None = None, offset: int  = 0, limit: int = Query(default=10, le=10)):
     if product_name is None and category is None:
         return []
@@ -41,7 +41,7 @@ async def search_products(session: Annotated[Session, Depends(get_session)], pro
     products = session.exec(stmt).all()
     return products
 
-@products_router.get("/category/", dependencies=[Depends(get_current_user)])
+@products_router.get("/category/", dependencies=[Depends(get_current_user)], response_model=Sequence[ProductReadWithVendor])
 async def get_products_by_category(session: Annotated[Session, Depends(get_session)], category: str | None = None):
     if category is None:
         return []
@@ -53,7 +53,7 @@ async def get_products_by_category(session: Annotated[Session, Depends(get_sessi
     products = session.exec(stmt).all()
     return products
 
-@products_router.put("/{product_id}/update/")
+@products_router.put("/{product_id}/update/", status_code=200, response_model=ProductReadWithVendor)
 async def update_product(product_id: int, req: ProductUpdate, session: Annotated[Session, Depends(get_session)], current_user: Annotated[User, Depends(is_user_vendor)]):
     product_obj = session.get(Product, product_id)
     
@@ -101,7 +101,7 @@ async def delete_product(product_id: int, session: Annotated[Session, Depends(ge
     session.commit()
     return
 
-@products_router.get("/{product_id}/", dependencies=[Depends(get_current_user)])
+@products_router.get("/{product_id}/", dependencies=[Depends(get_current_user)], response_model=ProductReadWithVendor)
 async def get_product(product_id: int, session: Annotated[Session, Depends(get_session)]):
     product_obj = session.get(Product, product_id)
     
@@ -110,7 +110,7 @@ async def get_product(product_id: int, session: Annotated[Session, Depends(get_s
     
     return product_obj
 
-@products_router.get("/", dependencies=[Depends(get_current_user)])
+@products_router.get("/", dependencies=[Depends(get_current_user)], response_model=Sequence[ProductReadWithVendor])
 async def get_products(session: Annotated[Session, Depends(get_session)], offset: int = 0, limit: int = Query(default=100, le=100)):
     products = session.exec(select(Product).offset(offset).limit(limit)).all()
     return products
