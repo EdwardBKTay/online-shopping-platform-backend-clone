@@ -33,3 +33,6 @@ class UserState(BaseModel):
     is_vendor: bool
     is_superuser: bool
     exp: datetime | int
+
+class ForgotPassword(BaseModel):
+    email: EmailStr

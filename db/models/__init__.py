@@ -3,8 +3,6 @@ from typing import Optional, List
 from datetime import datetime
 from decimal import Decimal
 
-# TODO: update the api response_model
-
 class UserBase(SQLModel):
     username: str = Field(unique=True, index=True)
     email: str = Field(unique=True)
@@ -15,8 +13,8 @@ class UserBase(SQLModel):
     updated_at: Optional[datetime] = Field(default=None, sa_column=Column(DateTime(timezone=True), default=None))
     is_vendor: bool = Field(default=False)
     is_superuser: bool = Field(default=False)
-    auth_token: Optional[str] = Field(default=None)
-    refresh_token: Optional[str] = Field(default=None)
+    auth_token: Optional[str] = Field(default=None, exclude=True)
+    refresh_token: Optional[str] = Field(default=None, exclude=True)
 
 class User(UserBase, table=True):
     id: Optional[int] = Field(default=None, primary_key=True)

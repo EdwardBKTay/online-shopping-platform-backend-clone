@@ -3,24 +3,20 @@
 from fastapi import APIRouter, Depends, HTTPException
 from fastapi.security import OAuth2PasswordRequestForm
 from pydantic import ValidationError
-from sqlmodel import Session
+from sqlmodel import Session, select
 from utils.deps import get_session
 from db.models import User, UserRead, UserReadAll
 from services.crud_user import user, get_current_user
-from schemas.user import UserCreate, UserState
+from schemas.user import UserCreate, UserState, ForgotPassword
 from schemas.token import Token, RefreshToken
 from typing import Annotated
 from auth.auth import read_private_key, create_access_token, verify_password, create_refresh_token
-from fastapi import Response
 from jose import jwt, JWTError, ExpiredSignatureError
 from core.config import settings
 import datetime
+import secrets
 
 users_router = APIRouter()
-
-# TODO: create a new endpoint for user login using application/json
-# TODO: create a new endpoint for reset-password
-# TODO: create a new endpoint for changing email & email verification
 
 @users_router.post("/create/", status_code=201, response_model=UserRead)
 async def create_user(session: Annotated[Session, Depends(get_session)], req: UserCreate):

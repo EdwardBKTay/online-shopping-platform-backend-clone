@@ -8,6 +8,7 @@ class Settings(BaseSettings):
     DB_PASSWORD: str
     DB_NAME: str
     TEST_DB_NAME: str
+    INVOICE_LANG: str = "en"
     
     DOCS_URL: str = "/docs"
     TOKEN_URL: str = "/users/login"

@@ -1,4 +1,4 @@
-from db.models import User, UserRead
+from db.models import User
 from sqlmodel import Session, select
 from fastapi import HTTPException, Depends
 from fastapi.encoders import jsonable_encoder

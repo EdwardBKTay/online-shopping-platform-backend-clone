@@ -1,4 +1,3 @@
-- write email verification, password reset, and password change, and email change, and logout api
 - rate-limiter
 - pagination
 - logger

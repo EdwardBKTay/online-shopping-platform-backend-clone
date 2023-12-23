@@ -11,8 +11,6 @@ import datetime
 
 carts_router = APIRouter()
 
-# TODO: integrate with payment gateway, stripe, etc.
-
 # https://medium.com/@chodvadiyasaurabh/integrating-stripe-payment-gateway-with-fastapi-a-comprehensive-guide-8fe4540b5a4
 
 @carts_router.get("/{username}/checkout/", status_code=200, response_model=OrderRead)

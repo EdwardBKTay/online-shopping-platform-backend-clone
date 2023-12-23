@@ -35,7 +35,6 @@ def test_get_username_existing_user(client: TestClient, session: Session, login_
     assert response.json()["email"] == user_dict.email
     assert "created_at" in response.json() and response.json()["created_at"] is not None
     assert "last_signed_in" in response.json() and response.json()["last_signed_in"] is not None
-    assert "auth_token" in response.json() and response.json()["auth_token"] is not None
     assert "is_vendor" in response.json() and response.json()["is_vendor"] is False
     assert "is_superuser" in response.json() and response.json()["is_superuser"] is False
     
