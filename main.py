@@ -6,6 +6,7 @@ from api.api_user import users_router
 from api.api_product import products_router
 from api.api_cart import carts_router
 from api.api_order import orders_router
+from api.api_bookmark import bookmarks_router
 from fastapi.middleware.cors import CORSMiddleware
 from utils.utils import set_default_product_categories
 
@@ -34,6 +35,7 @@ api_router.include_router(users_router, prefix="/users", tags=["Users"])
 api_router.include_router(products_router, prefix="/products", tags=["Products"])
 api_router.include_router(carts_router, prefix="/carts", tags=["Carts"])
 api_router.include_router(orders_router, prefix="/orders", tags=["Orders"])
+api_router.include_router(bookmarks_router, prefix="/bookmarks", tags=["Bookmarks"])
 
 app.include_router(api_router)
 
