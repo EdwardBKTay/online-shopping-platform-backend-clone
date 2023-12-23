@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException
 
 from sqlmodel import Session, select
-from db.models import User, Order, OrderRead, OrderItem, Product
+from db.models import User, Order, OrderRead, OrderItem
 from services.crud_user import is_only_user
 from utils.deps import get_session
 from typing import Annotated, Sequence

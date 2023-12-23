@@ -3,18 +3,17 @@
 from fastapi import APIRouter, Depends, HTTPException
 from fastapi.security import OAuth2PasswordRequestForm
 from pydantic import ValidationError
-from sqlmodel import Session, select
+from sqlmodel import Session
 from utils.deps import get_session
 from db.models import User, UserRead, UserReadAll
 from services.crud_user import user, get_current_user
-from schemas.user import UserCreate, UserState, ForgotPassword
+from schemas.user import UserCreate, UserState
 from schemas.token import Token, RefreshToken
 from typing import Annotated
 from auth.auth import read_private_key, create_access_token, verify_password, create_refresh_token
 from jose import jwt, JWTError, ExpiredSignatureError
 from core.config import settings
 import datetime
-import secrets
 
 users_router = APIRouter()
 
