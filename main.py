@@ -1,3 +1,7 @@
+# https://stackoverflow.blog/2020/03/02/best-practices-for-rest-api-design/
+
+# Case study on StackOverflow: https://www.linkedin.com/pulse/case-study-how-stackoverflows-monolith-beats-navjot-bansal
+
 from fastapi import FastAPI, APIRouter
 from sqlmodel import SQLModel, Session
 from db.engine import DB_URL, get_db
