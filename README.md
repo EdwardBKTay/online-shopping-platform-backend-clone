@@ -10,7 +10,7 @@ A half-baked mock online shopping platform that simulates the process of Shopee,
 - [x] User Service: user authentication, user authorization and user access control with JWT token
 - [x] Product Service: Only users that are identified as vendors are allowed to create a product and no duplicate product could be created
 - [x] Cart Service: Users that are identified as customers could perform CRUD operation on a cart and checkout whenever they want
-- [x] Order Service: When the cart is checked out, the items within a cart will be converted into an invoice
+- [x] Order Service: When the cart is checked out, the items within a cart will be converted into an sales receipt
 - [ ] Product Search Service: This service is currently based on regex. In the future, it will be updated into using elastic search
 
 ## How to use
