@@ -1,11 +1,11 @@
 from fastapi import APIRouter, Depends, HTTPException, Query
-from schemas.product import ProductCreate, ProductUpdate
-from services.crud_user import get_current_user, is_user_vendor
+from schemas.product import ProductCreate, ProductUpdate, ProductAddToCart
+from services.crud_user import get_current_user, is_only_user, is_user_vendor
 from fastapi.encoders import jsonable_encoder
 from sqlalchemy.exc import IntegrityError
 from sqlmodel import Session, select
 from utils.deps import get_session
-from db.models import Product, User, Category, ProductReadWithVendor
+from db.models import CartItemReadAll, Product, User, Category, ProductReadWithVendor, Cart, CartItem
 from typing import Annotated, Sequence
 import datetime
 
@@ -42,7 +42,7 @@ async def search_products(session: Annotated[Session, Depends(get_session)], pro
     return products
 
 @products_router.get("/category/", dependencies=[Depends(get_current_user)], response_model=Sequence[ProductReadWithVendor])
-async def get_products_by_category(session: Annotated[Session, Depends(get_session)], category: str | None = None):
+async def filter_product_by_category(session: Annotated[Session, Depends(get_session)], category: str | None = None):
     if category is None:
         return []
     
@@ -114,3 +114,36 @@ async def get_product(product_id: int, session: Annotated[Session, Depends(get_s
 async def get_products(session: Annotated[Session, Depends(get_session)], offset: int = 0, limit: int = Query(default=100, le=100)):
     products = session.exec(select(Product).offset(offset).limit(limit)).all()
     return products
+
+@products_router.post("/{product_id}/add-to-cart/", status_code=201, response_model=CartItemReadAll)
+async def add_to_cart(product_id: int, req: ProductAddToCart, session: Annotated[Session, Depends(get_session)], current_user: Annotated[User, Depends(is_only_user)]):
+    product = session.get(Product, product_id)
+    
+    if product is None:
+        raise HTTPException(status_code=404, detail="Product not found")
+    
+    if product.available_quantity < req.quantity:
+        raise HTTPException(status_code=409, detail="Not enough stock")
+    
+    user_cart = session.exec(select(Cart).where(Cart.user == current_user)).one_or_none()
+    
+    if user_cart is None:
+        user_cart = Cart(user=current_user, created_at=datetime.datetime.now(datetime.UTC))
+        session.add(user_cart)
+        session.commit()
+        session.refresh(user_cart)
+    
+    cart_item = session.exec(select(CartItem).where(CartItem.cart == user_cart and CartItem.product_id == product_id)).one_or_none()
+    
+    if cart_item is None:
+        new_cart_item = CartItem(cart=user_cart, product_id=product_id, quantity=req.quantity, created_at=datetime.datetime.now(datetime.UTC))
+    else:
+        raise HTTPException(status_code=409, detail="Product already in cart")
+    
+    user_cart.updated_at = datetime.datetime.now(datetime.UTC)
+    
+    session.add(user_cart)
+    session.add(new_cart_item)
+    session.commit()
+    session.refresh(new_cart_item)
+    return new_cart_item

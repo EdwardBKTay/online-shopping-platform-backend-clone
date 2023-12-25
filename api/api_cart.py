@@ -1,17 +1,14 @@
 from fastapi import APIRouter, Depends, HTTPException
-from schemas.cart import CartCreate, CartUpdate
+from schemas.cart import CartUpdate
 from services.crud_user import is_only_user
 from db.models import Cart, Product, User, CartItem, Order, OrderItem, OrderRead, CartItemReadAll
 from sqlmodel import Session, select
 from utils.deps import get_session
-from fastapi.encoders import jsonable_encoder
 from typing_extensions import Annotated, Sequence
 from decimal import Decimal
 import datetime
 
 carts_router = APIRouter()
-
-# https://medium.com/@chodvadiyasaurabh/integrating-stripe-payment-gateway-with-fastapi-a-comprehensive-guide-8fe4540b5a4
 
 @carts_router.get("/{username}/checkout/", status_code=200, response_model=OrderRead)
 async def checkout_cart(username: str, session: Annotated[Session, Depends(get_session)], current_user: Annotated[User, Depends(is_only_user)]):
@@ -57,40 +54,6 @@ async def checkout_cart(username: str, session: Annotated[Session, Depends(get_s
     session.commit()
     session.refresh(user_order)
     return user_order
-
-@carts_router.post("/{username}/add/{product_id}/", status_code=201, response_model=CartItemReadAll)
-async def add_to_cart(product_id: int, username: str, req: CartCreate, session: Annotated[Session, Depends(get_session)], current_user: Annotated[User, Depends(is_only_user)]):
-    if username != current_user.username:
-        raise HTTPException(status_code=403, detail="Unauthorized to add to other user's cart")
-    
-    product = session.get(Product, product_id)
-    
-    if product is None:
-        raise HTTPException(status_code=404, detail="Product not found")
-    
-    if product.available_quantity < req.quantity:
-        raise HTTPException(status_code=409, detail="Not enough stock")
-    
-    user_cart = session.exec(select(Cart).where(Cart.user == current_user)).one_or_none()
-    
-    if user_cart is None:
-        user_cart = Cart(user=current_user, created_at=datetime.datetime.now(datetime.UTC))
-        session.add(user_cart)
-        session.commit()
-        
-    stmt = select(Cart).join(CartItem).where(CartItem.product_id == product_id and Cart.user == current_user)
-        
-    if session.exec(stmt).one_or_none() is not None:
-        raise HTTPException(status_code=409, detail="Product already in cart")
-    
-    new_cart_item = CartItem(**jsonable_encoder(req), product=product, cart=user_cart, created_at=datetime.datetime.now(datetime.UTC))
-    user_cart.updated_at = datetime.datetime.now(datetime.UTC)
-    
-    session.add(user_cart)
-    session.add(new_cart_item)
-    session.commit()
-    session.refresh(new_cart_item)
-    return new_cart_item
 
 @carts_router.get("/{username}/", status_code=200, response_model=Sequence[CartItemReadAll])
 async def get_user_cart(username: str, session: Annotated[Session, Depends(get_session)], current_user: Annotated[User, Depends(is_only_user)]):

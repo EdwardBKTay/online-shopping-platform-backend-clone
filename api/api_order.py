@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException
 
 from sqlmodel import Session, select
-from db.models import User, Order, OrderRead, OrderItem
+from db.models import User, Order, OrderRead, OrderItem, OrderItemReadWithProduct
 from services.crud_user import is_only_user
 from utils.deps import get_session
 from typing import Annotated, Sequence
@@ -9,7 +9,7 @@ from typing import Annotated, Sequence
 orders_router = APIRouter()
 
 @orders_router.get("/{username}/", response_model=Sequence[OrderRead])
-async def get_orders(username: str, session: Annotated[Session, Depends(get_session)], current_user: Annotated[User, Depends(is_only_user)]):
+async def get_user_orders(username: str, session: Annotated[Session, Depends(get_session)], current_user: Annotated[User, Depends(is_only_user)]):
     if username != current_user.username:
         raise HTTPException(status_code=403, detail="Unauthorized to view other user's orders")
     
@@ -17,8 +17,8 @@ async def get_orders(username: str, session: Annotated[Session, Depends(get_sess
     
     return user_orders
 
-@orders_router.get("/{username}/{order_id}/")
-async def get_order(username: str, order_id: int, session: Annotated[Session, Depends(get_session)], current_user: Annotated[User, Depends(is_only_user)]):
+@orders_router.get("/{username}/{order_id}/", response_model=Sequence[OrderItemReadWithProduct])
+async def get_user_order(username: str, order_id: int, session: Annotated[Session, Depends(get_session)], current_user: Annotated[User, Depends(is_only_user)]):
     if username != current_user.username:
         raise HTTPException(status_code=403, detail="Unauthorized to view other user's orders")
     
@@ -34,12 +34,3 @@ async def get_order(username: str, order_id: int, session: Annotated[Session, De
 
     return user_order_items
 
-# @orders_router.get("/{username}/{order_id}/export")
-# async def export_order(username: str, order_id: int, session: Annotated[Session, Depends(get_session)], current_user: Annotated[User, Depends(is_only_user)]):
-#     if username != current_user.username:
-#         raise HTTPException(status_code=403, detail="Unauthorized to view other user's orders")
-    
-#     user_order = session.exec(select(Order).where(Order.id == order_id and Order.user == current_user)).one_or_none()
-    
-#     if user_order is None:
-#         raise HTTPException(status_code=404, detail="Order not found")

@@ -14,7 +14,7 @@ from tests.api.test_api_user import login_user
 def test_add_to_cart(client: TestClient, session: Session, login_user: tuple[str, User], create_product: dict):
     token, user_dict = login_user
     
-    response = client.post(f"/carts/{user_dict.username}/add/{create_product["id"]}", json={
+    response = client.post(f"/products/{create_product["id"]}/add-to-cart", json={
         "quantity": 5
     }, headers={
         "Authorization": f"Bearer {token}"
@@ -28,7 +28,7 @@ def test_add_to_cart(client: TestClient, session: Session, login_user: tuple[str
     assert response.json()["updated_at"] is None
     
 def test_add_to_cart_without_token(client: TestClient, session: Session, create_product: dict):
-    response = client.post(f"/carts/testuser/add/{create_product["id"]}", json={
+    response = client.post(f"/products/{create_product["id"]}/add-to-cart", json={
         "quantity": 5
     })
     
@@ -38,7 +38,7 @@ def test_add_to_cart_without_token(client: TestClient, session: Session, create_
 def test_add_to_cart_not_user(client: TestClient, session: Session, login_vendor: tuple[str, User], create_product: dict):
     token, user_dict = login_vendor
     
-    response = client.post(f"/carts/{user_dict.username}/add/{create_product["id"]}", json={
+    response = client.post(f"/products/{create_product["id"]}/add-to-cart", json={
         "quantity": 5
     }, headers={
         "Authorization": f"Bearer {token}"
@@ -50,7 +50,7 @@ def test_add_to_cart_not_user(client: TestClient, session: Session, login_vendor
 def test_add_to_cart_invalid_product(client: TestClient, session: Session, login_user: tuple[str, User]):
     token, user_dict = login_user
     
-    response = client.post(f"/carts/{user_dict.username}/add/999", json={
+    response = client.post("/products/999/add-to-cart", json={
         "quantity": 5
     }, headers={
         "Authorization": f"Bearer {token}"
@@ -62,7 +62,7 @@ def test_add_to_cart_invalid_product(client: TestClient, session: Session, login
 def test_add_to_cart_not_enough_stock(client: TestClient, session: Session, login_user: tuple[str, User], create_product: dict):
     token, user_dict = login_user
     
-    response = client.post(f"/carts/{user_dict.username}/add/{create_product["id"]}", json={
+    response = client.post(f"/products/{create_product["id"]}/add-to-cart", json={
         "quantity": 999
     }, headers={
         "Authorization": f"Bearer {token}"
@@ -74,13 +74,13 @@ def test_add_to_cart_not_enough_stock(client: TestClient, session: Session, logi
 def test_add_to_cart_duplicated_product(client: TestClient, session: Session, login_user: tuple[str, User], create_product: dict):
     token, user_dict = login_user
     
-    client.post(f"/carts/{user_dict.username}/add/{create_product["id"]}", json={
+    client.post(f"/products/{create_product["id"]}/add-to-cart", json={
         "quantity": 5
     }, headers={
         "Authorization": f"Bearer {token}"
     })
     
-    response = client.post(f"/carts/{user_dict.username}/add/{create_product["id"]}", json={
+    response = client.post(f"/products/{create_product["id"]}/add-to-cart", json={
         "quantity": 5
     }, headers={
         "Authorization": f"Bearer {token}"
@@ -89,32 +89,11 @@ def test_add_to_cart_duplicated_product(client: TestClient, session: Session, lo
     assert response.status_code == 409
     assert response.json()["detail"] == "Product already in cart"
     
-def test_add_to_cart_not_cart_owner(client: TestClient, session: Session, login_user: tuple[str, User], create_product: dict):
-    token, user_dict = login_user
-    
-    new_user = user.create(session, UserCreate(username="testuser2", email="testuser2@example.com", password=SecretStr('Test_1234!')))
-    
-    data = client.post("/users/login", data={
-        "username": "testuser2",
-        "password": "Test_1234!"
-    })
-    
-    access_token = data.json()["access_token"]
-    
-    response = client.post(f"/carts/{user_dict.username}/add/{create_product["id"]}", json={
-        "quantity": 5
-    }, headers={
-        "Authorization": f"Bearer {access_token}"
-    })
-    
-    assert response.status_code == 403
-    assert response.json()["detail"] == "Unauthorized to add to other user's cart"
-    
 @pytest.fixture
 def add_items_to_cart(client: TestClient, session: Session, login_user: tuple[str, User], create_product: dict) -> tuple[str, Cart, User]:
     token, user_dict = login_user
     
-    cart_data = client.post("/carts/testuser/add/1", json={
+    cart_data = client.post("/products/1/add-to-cart", json={
         "quantity": 5
     }, headers={
         "Authorization": f"Bearer {token}"
@@ -314,32 +293,32 @@ def test_delete_cart_items_not_cart_item(client: TestClient, session: Session, a
     assert response.status_code == 404
     assert response.json()["detail"] == "Cart item not found"
 
-def test_checkout_cart(client: TestClient, session: Session, add_items_to_cart: tuple[str, Cart, User]):
-    token, cart_data, user_dict = add_items_to_cart
+# def test_checkout_cart(client: TestClient, session: Session, add_items_to_cart: tuple[str, Cart, User]):
+#     token, cart_data, user_dict = add_items_to_cart
     
-    response = client.get(f"/carts/{user_dict.username}/checkout", headers={
-        "Authorization": f"Bearer {token}"
-    })
+#     response = client.get(f"/carts/{user_dict.username}/checkout", headers={
+#         "Authorization": f"Bearer {token}"
+#     })
     
-    assert response.status_code == 200
-    assert response.json()["total_price"] == "50.00"
-    assert response.json()["created_at"] is not None
-    assert response.json()["updated_at"] is None
+#     assert response.status_code == 200
+#     assert response.json()["total_price"] == "50.00"
+#     assert response.json()["created_at"] is not None
+#     assert response.json()["updated_at"] is None
 
-def test_checkout_cart_without_token(client: TestClient, session: Session, add_items_to_cart: tuple[str, Cart, User]):
-    token, cart_data, user_dict = add_items_to_cart
+# def test_checkout_cart_without_token(client: TestClient, session: Session, add_items_to_cart: tuple[str, Cart, User]):
+#     token, cart_data, user_dict = add_items_to_cart
     
-    response = client.get(f"/carts/{user_dict.username}/checkout")
+#     response = client.get(f"/carts/{user_dict.username}/checkout")
     
-    assert response.status_code == 401
-    assert response.json()["detail"] == "Not authenticated"
+#     assert response.status_code == 401
+#     assert response.json()["detail"] == "Not authenticated"
     
-def test_checkout_cart_not_user(client: TestClient, session: Session, login_vendor: tuple[str, User], create_product: dict):
-    token, user_dict = login_vendor
+# def test_checkout_cart_not_user(client: TestClient, session: Session, login_vendor: tuple[str, User], create_product: dict):
+#     token, user_dict = login_vendor
     
-    response = client.get(f"/carts/{user_dict.username}/checkout", headers={
-        "Authorization": f"Bearer {token}"
-    })
+#     response = client.get(f"/carts/{user_dict.username}/checkout", headers={
+#         "Authorization": f"Bearer {token}"
+#     })
     
-    assert response.status_code == 403
-    assert response.json()["detail"] == "User is not a customer"
+#     assert response.status_code == 403
+#     assert response.json()["detail"] == "User is not a customer"

@@ -38,3 +38,6 @@ class ProductUpdate(ProductCreate):
     category_name: ProductCategory | None = None
     original_price: Annotated[Decimal, Field(..., ge=0, decimal_places=2)] | None = None
     available_quantity: PositiveInt | None = None
+
+class ProductAddToCart(BaseModel):
+    quantity: PositiveInt = Field(..., ge=0)
