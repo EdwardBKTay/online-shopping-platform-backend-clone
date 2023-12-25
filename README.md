@@ -53,3 +53,5 @@ uvicorn main:app --reload
 6. Additional services for admin
 7. Use HTTPS for security consideration
 8. Casbin RBAC Access Control Model
+9. Once checkout, send an invoice email for the order confirmation
+10. Email verification flow and send invoice email once payment is made
