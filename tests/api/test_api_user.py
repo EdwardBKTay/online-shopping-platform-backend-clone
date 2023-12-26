@@ -3,10 +3,12 @@ from db.models import User
 
 from tests.test_main import client_fixture, session_fixture
 from fastapi.testclient import TestClient
+from services.mail import fm
 from services.crud_user import user
 from schemas.user import UserCreate
 from sqlmodel import Session
 from pydantic import SecretStr
+import time
 
 @pytest.fixture
 def login_user(client: TestClient, session: Session) -> tuple[str, User]:
@@ -68,11 +70,16 @@ def test_post_create_user(client: TestClient, session: Session, test_data: dict)
     response = client.post("/users/create", json=test_data, headers={"Content-Type": "application/json"})
     
     assert response.status_code == 201
-    assert response.json()["username"] == test_data["username"]
-    assert response.json()["email"] == test_data["email"]
-    assert "created_at" in response.json() and response.json()["created_at"] is not None
-    assert "last_signed_in" in response.json() and response.json()["last_signed_in"] is None
     
+def test_post_create_user_send_verification_email(client: TestClient, session: Session, test_data: dict):
+    fm.config.SUPPRESS_SEND = 1
+    with fm.record_messages() as outbox:
+        client.post("/users/create", json=test_data, headers={"Content-Type": "application/json"})
+        assert len(outbox) == 1
+        assert outbox[0]["subject"] == "Online Shopping Platform Account Verification Mail"
+        assert outbox[0]["to"] == test_data["email"]
+        assert outbox[0]["from"] == fm.config.MAIL_FROM
+
 def test_post_create_user_with_existing_username(client: TestClient, session: Session, test_data: dict):
     client.post("/users/create", json=test_data, headers={"Content-Type": "application/json"})
     
@@ -150,3 +157,31 @@ def test_logout_user_with_invalid_token(client: TestClient, session: Session, lo
     
     assert response.status_code == 401
     assert response.json()["detail"] == "Invalid authentication credentials"
+
+def test_verify_email(client: TestClient, session: Session, test_data: dict):
+    
+    response = client.post("/users/create", json=test_data, headers={"Content-Type": "application/json"})
+    
+    token = response.json()["email_verification_token"]
+    
+    response = client.get(f"/users/verify-email?token={token}")
+    
+    assert response.status_code == 200
+    assert response.json()["message"] == "Email verified successfully"
+
+def test_verify_email_with_expired_token(client: TestClient, session: Session, test_data: dict):
+    user.create(session, UserCreate(**test_data))
+    token = user.create_email_verification_token(session, test_data["email"], expiration_seconds=1).email_verification_token
+    time.sleep(2)
+    response = client.get(f"/users/verify-email?token={token}", headers={"Content-Type": "application/json"})
+    
+    assert response.status_code == 401
+    assert response.json()["detail"] == "Email verification token expired"
+
+def test_verify_email_without_valid_token(client: TestClient, session: Session, test_data: dict):
+    user.create(session, UserCreate(**test_data))
+    token = user.create_email_verification_token(session, test_data["email"], expiration_seconds=1).email_verification_token
+    response = client.get(f"/users/verify-email?token={token}abc", headers={"Content-Type": "application/json"})
+    
+    assert response.status_code == 401
+    assert response.json()["detail"] == "Invalid email verification token"

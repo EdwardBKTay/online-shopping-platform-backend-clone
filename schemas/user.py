@@ -36,3 +36,4 @@ class UserState(BaseModel):
 
 class ForgotPassword(BaseModel):
     email: EmailStr
+

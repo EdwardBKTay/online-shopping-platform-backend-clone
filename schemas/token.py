@@ -7,3 +7,6 @@ class Token(BaseModel):
 
 class RefreshToken(BaseModel):
     refresh_token: str
+
+class EmailVerificationToken(BaseModel):
+    email_verification_token: str

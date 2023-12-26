@@ -16,9 +16,9 @@ from utils.utils import set_default_product_categories
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     engine = get_db(DB_URL, {"echo": True})
-    # SQLModel.metadata.drop_all(engine) # remove this line when deploying to production
+    SQLModel.metadata.drop_all(engine) # remove this line when deploying to production
     SQLModel.metadata.create_all(engine)
-    # set_default_product_categories(Session(engine)) # remove this line when deploying to production
+    set_default_product_categories(Session(engine)) # remove this line when deploying to production
     yield
 
 app = FastAPI(lifespan=lifespan)

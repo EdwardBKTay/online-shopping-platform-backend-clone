@@ -21,7 +21,11 @@ class Settings(BaseSettings):
     PUBLIC_KEY_PATH: str = "public_key.pem"
     PRIVATE_KEY_PATH: str = "private_key.pem"
     TOKEN_EXCLUDE: list[str] = ["/users/login/", "/users/token/refresh/", "/users/create/", DOCS_URL, "/openapi.json", "/redoc", TOKEN_URL]
-    STRIPE_API_TEST_KEY: str
+    
+    EMAIL_NAME: str
+    EMAIL_PASSWORD: str
+    EMAIL_SERVER: str
+    EMAIL_VERIFICATION_TOKEN_EXPIRATION_SECONDS: int = 60 * 60 * 24 * 7
 
 @lru_cache(maxsize=1)
 def get_settings():

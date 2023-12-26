@@ -173,3 +173,11 @@ class UserReadAll(UserRead):
 class CartReadAll(CartRead):
     user: Optional[UserRead] = None
     cart_items: List[CartItemReadWithProduct] = []
+
+class EmailVerificationBase(SQLModel):
+    email: str = Field(unique=True)
+    token: str = Field(unique=True)
+    expires_at: datetime = Field(sa_column=Column(DateTime(timezone=True)))
+    
+class EmailVerification(EmailVerificationBase, table=True):
+    id: Optional[int] = Field(default=None, primary_key=True, index=True)

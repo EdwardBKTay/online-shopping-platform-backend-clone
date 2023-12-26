@@ -1,14 +1,15 @@
 # Reference for SQL injection attack: https://www.w3schools.com/sql/sql_injection.asp
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, BackgroundTasks
 from fastapi.security import OAuth2PasswordRequestForm
-from pydantic import ValidationError
-from sqlmodel import Session
+from pydantic import ValidationError, EmailStr
+from sqlmodel import Session, select
 from utils.deps import get_session
-from db.models import User, UserRead, UserReadAll
+from db.models import User, UserRead, UserReadAll, EmailVerification
 from services.crud_user import user, get_current_user
+from services.mail import send_verification_email, EmailSchema
 from schemas.user import UserCreate, UserState
-from schemas.token import Token, RefreshToken
+from schemas.token import Token, RefreshToken, EmailVerificationToken
 from typing import Annotated
 from auth.auth import read_private_key, create_access_token, verify_password, create_refresh_token
 from jose import jwt, JWTError, ExpiredSignatureError
@@ -17,9 +18,32 @@ import datetime
 
 users_router = APIRouter()
 
-@users_router.post("/create/", status_code=201, response_model=UserRead)
-async def create_user(session: Annotated[Session, Depends(get_session)], req: UserCreate):
-    return user.create(session, req)
+@users_router.post("/create/", status_code=201, response_model=EmailVerificationToken)
+async def create_user(session: Annotated[Session, Depends(get_session)], req: UserCreate, background_tasks: BackgroundTasks):
+    new_user = user.create(session, req)
+    token = user.create_email_verification_token(session, new_user.email)
+    
+    background_tasks.add_task(send_verification_email, email=EmailSchema(email=[new_user.email]), token=token.email_verification_token)
+    
+    return token
+
+@users_router.get("/verify-email/")
+async def verify_email(token: str, session: Annotated[Session, Depends(get_session)]):
+    verification_obj = session.exec(select(EmailVerification).where(EmailVerification.token == token)).one_or_none()
+    
+    if verification_obj is None:
+        raise HTTPException(status_code=401, detail="Invalid email verification token")
+    
+    if verification_obj.expires_at < datetime.datetime.now(datetime.UTC):
+        raise HTTPException(status_code=401, detail="Email verification token expired")
+    
+    user_obj = user.get_email(session, verification_obj.email)
+    user_obj.is_email_verified = True
+    session.add(user_obj)
+    session.delete(verification_obj)
+    session.commit()
+    
+    return {"message": "Email verified successfully"}
 
 @users_router.post("/login/", response_model=Token)
 async def login_for_token(form_data: Annotated[OAuth2PasswordRequestForm, Depends()], session: Annotated[Session, Depends(get_session)]):
