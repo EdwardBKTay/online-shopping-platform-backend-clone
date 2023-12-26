@@ -1,15 +1,13 @@
 import pytest
 
-from tests.test_main import client_fixture, session_fixture
 from fastapi.testclient import TestClient
-from schemas.user import UserCreate
-from sqlmodel import Session
-from services.crud_user import user
-from db.models import User, Cart
-from schemas.cart import CartCreate, CartUpdate
 from pydantic import SecretStr
-from tests.api.test_api_product import create_product, login_vendor
-from tests.api.test_api_user import login_user
+from sqlmodel import Session
+
+from db.models import Cart, User
+from schemas.user import UserCreate
+from services.crud_user import user
+
 
 def test_add_to_cart(client: TestClient, session: Session, login_user: tuple[str, User], create_product: dict):
     token, user_dict = login_user

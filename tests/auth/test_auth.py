@@ -1,10 +1,11 @@
-import pytest
 
-from auth.auth import get_password_hash, verify_password, create_access_token, read_private_key, read_public_key
-from pydantic import SecretStr
-from jose import jwt
-from schemas.user import UserState
 import datetime
+
+from jose import jwt
+
+from auth.auth import create_access_token, get_password_hash, read_private_key, read_public_key, verify_password
+from schemas.user import UserState
+
 
 def test_get_password_hash():
     password = "testpassword"

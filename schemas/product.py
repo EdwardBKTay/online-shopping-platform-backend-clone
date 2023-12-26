@@ -1,7 +1,9 @@
-from pydantic import BaseModel, Field, PositiveInt
-from typing import Optional, Annotated
 from decimal import Decimal
 from enum import Enum
+from typing import Annotated
+
+from pydantic import BaseModel, Field, PositiveInt
+
 
 class ProductCategory(str, Enum):
     electronics = "Electronics"

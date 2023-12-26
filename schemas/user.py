@@ -1,8 +1,10 @@
 import re
-from fastapi import HTTPException, status
-from fastapi.exceptions import RequestValidationError
-from pydantic import EmailStr, SecretStr, field_serializer, Field, field_validator, SecretStr, BaseModel
+
 from datetime import datetime
+
+from fastapi.exceptions import RequestValidationError
+from pydantic import BaseModel, EmailStr, Field, SecretStr, field_serializer, field_validator
+
 
 class UserBase(BaseModel):
     username: str = Field(pattern=r"^[a-zA-Z0-9]+$", min_length=3, max_length=20)

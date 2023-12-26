@@ -1,9 +1,10 @@
-from fastapi import Depends
-from sqlmodel import Session
-from db.models import Category
-from typing import Annotated
-from schemas.product import ProductCategory
 import datetime
+
+from sqlmodel import Session
+
+from db.models import Category
+from schemas.product import ProductCategory
+
 
 def set_default_product_categories(db: Session):
     for category in ProductCategory:

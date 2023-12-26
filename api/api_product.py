@@ -1,13 +1,16 @@
+import datetime
+
+from typing import Annotated, Sequence
+
 from fastapi import APIRouter, Depends, HTTPException, Query
-from schemas.product import ProductCreate, ProductUpdate, ProductAddToCart
-from services.crud_user import get_current_user, is_only_user, is_user_vendor
 from fastapi.encoders import jsonable_encoder
 from sqlalchemy.exc import IntegrityError
 from sqlmodel import Session, select
+
+from db.models import Cart, CartItem, CartItemReadAll, Category, Product, ProductReadWithVendor, User
+from schemas.product import ProductAddToCart, ProductCreate, ProductUpdate
+from services.crud_user import get_current_user, is_only_user, is_user_vendor
 from utils.deps import get_session
-from db.models import CartItemReadAll, Product, User, Category, ProductReadWithVendor, Cart, CartItem
-from typing import Annotated, Sequence
-import datetime
 
 products_router = APIRouter()
 

@@ -1,8 +1,10 @@
-from sqlmodel import create_engine
-from sqlalchemy.exc import DBAPIError
 from typing import Any
-from db.models import *
+
+from sqlalchemy.exc import DBAPIError
+from sqlmodel import create_engine
+
 from core.config import settings
+from db.models import *
 
 DB_URL = f"postgresql+psycopg2://{settings.DB_USERNAME}:{settings.DB_PASSWORD}@localhost:5432/{settings.DB_NAME}"
 

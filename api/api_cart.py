@@ -1,12 +1,15 @@
+import datetime
+
+from decimal import Decimal
+
 from fastapi import APIRouter, Depends, HTTPException
+from sqlmodel import Session, select
+from typing_extensions import Annotated, Sequence
+
+from db.models import Cart, CartItem, CartItemReadAll, Order, OrderItem, OrderRead, Product, User
 from schemas.cart import CartUpdate
 from services.crud_user import is_only_user
-from db.models import Cart, Product, User, CartItem, Order, OrderItem, OrderRead, CartItemReadAll
-from sqlmodel import Session, select
 from utils.deps import get_session
-from typing_extensions import Annotated, Sequence
-from decimal import Decimal
-import datetime
 
 carts_router = APIRouter()
 

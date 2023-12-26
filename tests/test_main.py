@@ -1,14 +1,15 @@
 import pytest
 
-from sqlmodel import SQLModel
-from utils.deps import get_session
-from main import app
 from fastapi.testclient import TestClient
-from sqlmodel import create_engine, Session
+from sqlmodel import Session, SQLModel, create_engine
 from sqlmodel.pool import StaticPool
-from db.models import *
-from utils.utils import set_default_product_categories
+
 from core.config import settings
+from db.models import *
+from main import app
+from utils.deps import get_session
+from utils.utils import set_default_product_categories
+
 
 @pytest.fixture(name="session")
 def session_fixture():

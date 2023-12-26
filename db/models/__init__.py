@@ -1,7 +1,9 @@
-from sqlmodel import SQLModel, Field, Column, DateTime, Relationship
-from typing import Optional, List
 from datetime import datetime
 from decimal import Decimal
+from typing import List, Optional
+
+from sqlmodel import Column, DateTime, Field, Relationship, SQLModel
+
 
 class UserBase(SQLModel):
     username: str = Field(unique=True, index=True)

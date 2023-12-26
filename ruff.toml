@@ -1,0 +1,35 @@
+target-version = "py312"
+line-length = 120
+
+[lint]
+select = [
+    "E",
+    "F",
+    "I",
+    "W505",
+    "PT018",
+    "SIM101",
+    "SIM114",
+    "PGH004",
+    "PLE1142",
+    "RUF100",
+    "F404",
+    "TCH",
+    "UP007"
+]
+
+[lint.flake8-pytest-style]
+mark-parentheses = false
+parametrize-names-type = "list"
+parametrize-values-row-type = "list"
+parametrize-values-type = "tuple"
+
+[lint.flake8-unused-arguments]
+ignore-variadic-names = true
+
+[lint.isort]
+lines-between-types = 1
+order-by-type = true
+
+[format]
+quote-style = "double"

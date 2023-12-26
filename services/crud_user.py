@@ -1,18 +1,22 @@
-from db.models import User, EmailVerification
-from sqlmodel import Session, select
-from fastapi import HTTPException, Depends
-from fastapi.encoders import jsonable_encoder
-from schemas.user import UserCreate, UserState
-from auth.auth import get_password_hash, read_public_key, oauth2_scheme
-from utils.deps import get_session
-from jose import jwt, ExpiredSignatureError, JWTError
-from pydantic import ValidationError
-from sqlalchemy.exc import IntegrityError
-from schemas.token import EmailVerificationToken
-from core.config import settings
-from typing import Annotated
 import datetime
 import secrets
+
+from typing import Annotated
+
+from fastapi import Depends, HTTPException
+from fastapi.encoders import jsonable_encoder
+from jose import ExpiredSignatureError, JWTError, jwt
+from pydantic import ValidationError
+from sqlalchemy.exc import IntegrityError
+from sqlmodel import Session, select
+
+from auth.auth import get_password_hash, oauth2_scheme, read_public_key
+from core.config import settings
+from db.models import EmailVerification, User
+from schemas.token import EmailVerificationToken
+from schemas.user import UserCreate, UserState
+from utils.deps import get_session
+
 
 class CRUDUser:
     def __init__(self, model: User):
@@ -76,7 +80,7 @@ def get_current_user(public_key: Annotated[bytes, Depends(read_public_key)], tok
             if db_obj.auth_token != token:
                 raise http_exception
             # if db_obj.is_email_verified is False:
-            #     raise HTTPException(status_code=401, detail="Email is not verified", headers={"WWW-Authenticate": "Bearer"}) # TODO: uncomment this line in production
+            #     raise HTTPException(status_code=401, detail="Email is not verified", headers={"WWW-Authenticate": "Bearer"}) # ! uncomment this line in production
         except ValidationError as e:
             raise http_exception from e
         except ExpiredSignatureError as e:

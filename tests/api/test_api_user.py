@@ -1,14 +1,16 @@
-import pytest
-from db.models import User
-
-from tests.test_main import client_fixture, session_fixture
-from fastapi.testclient import TestClient
-from services.mail import fm
-from services.crud_user import user
-from schemas.user import UserCreate
-from sqlmodel import Session
-from pydantic import SecretStr
 import time
+
+import pytest
+
+from fastapi.testclient import TestClient
+from pydantic import SecretStr
+from sqlmodel import Session
+
+from db.models import User
+from schemas.user import UserCreate
+from services.crud_user import user
+from services.mail import fm
+
 
 @pytest.fixture
 def login_user(client: TestClient, session: Session) -> tuple[str, User]:

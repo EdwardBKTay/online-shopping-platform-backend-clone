@@ -1,15 +1,17 @@
-import pytest
-
-from tests.test_main import client_fixture, session_fixture
-from fastapi.testclient import TestClient
-from sqlmodel import Session
-from schemas.user import UserCreate
-from db.models import User
-from schemas.product import ProductCreate, ProductUpdate, ProductCategory
-from pydantic import SecretStr
-from services.crud_user import user
 from decimal import Decimal
 from typing import Any
+
+import pytest
+
+from fastapi.testclient import TestClient
+from pydantic import SecretStr
+from sqlmodel import Session
+
+from db.models import User
+from schemas.product import ProductCategory, ProductCreate, ProductUpdate
+from schemas.user import UserCreate
+from services.crud_user import user
+
 
 @pytest.fixture
 def login_vendor(client: TestClient, session: Session):

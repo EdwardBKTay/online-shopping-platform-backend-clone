@@ -1,20 +1,23 @@
 # Reference for SQL injection attack: https://www.w3schools.com/sql/sql_injection.asp
 
-from fastapi import APIRouter, Depends, HTTPException, BackgroundTasks
-from fastapi.security import OAuth2PasswordRequestForm
-from pydantic import ValidationError, EmailStr
-from sqlmodel import Session, select
-from utils.deps import get_session
-from db.models import User, UserRead, UserReadAll, EmailVerification
-from services.crud_user import user, get_current_user
-from services.mail import send_verification_email, EmailSchema
-from schemas.user import UserCreate, UserState
-from schemas.token import Token, RefreshToken, EmailVerificationToken
-from typing import Annotated
-from auth.auth import read_private_key, create_access_token, verify_password, create_refresh_token
-from jose import jwt, JWTError, ExpiredSignatureError
-from core.config import settings
 import datetime
+
+from typing import Annotated
+
+from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException
+from fastapi.security import OAuth2PasswordRequestForm
+from jose import ExpiredSignatureError, JWTError, jwt
+from pydantic import ValidationError
+from sqlmodel import Session, select
+
+from auth.auth import create_access_token, create_refresh_token, read_private_key, verify_password
+from core.config import settings
+from db.models import EmailVerification, User, UserReadAll
+from schemas.token import EmailVerificationToken, RefreshToken, Token
+from schemas.user import UserCreate, UserState
+from services.crud_user import get_current_user, user
+from services.mail import EmailSchema, send_verification_email
+from utils.deps import get_session
 
 users_router = APIRouter()
 

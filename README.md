@@ -13,7 +13,7 @@ A half-baked mock online shopping platform that simulates the process of Shopee,
 - [x] Order Service: When the cart is checked out, the items within a cart will be converted a sales order.
 - [x] Search Service: Allow users to search for specified product through query parameter or filter products into a specified category
 
-## How to use
+## Main use case
 
 1. Login as a vendor -> Create some products
 2. Login as a customer -> Search for the products -> Add some products into the cart -> Checkout the cart -> View the Order

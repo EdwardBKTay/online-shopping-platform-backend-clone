@@ -1,14 +1,16 @@
+import datetime
+
 import pytest
 
-from db.models import User
-from schemas.user import UserCreate, UserState
+from fastapi import HTTPException, status
 from pydantic import SecretStr
 from sqlmodel import Session
-from fastapi import HTTPException, status
-from services.crud_user import user, get_current_user
-from tests.test_main import session_fixture
-from auth.auth import read_public_key, create_access_token, read_private_key
-import datetime
+
+from auth.auth import create_access_token, read_private_key, read_public_key
+from db.models import User
+from schemas.user import UserCreate, UserState
+from services.crud_user import get_current_user, user
+
 
 class TestCRUDUser:
     @pytest.fixture

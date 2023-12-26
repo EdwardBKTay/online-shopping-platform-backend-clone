@@ -1,10 +1,11 @@
-from fastapi import APIRouter, Depends, HTTPException
+from typing import Annotated, Sequence
 
+from fastapi import APIRouter, Depends, HTTPException
 from sqlmodel import Session, select
-from db.models import User, Order, OrderRead, OrderItem, OrderItemReadWithProduct
+
+from db.models import Order, OrderItem, OrderItemReadWithProduct, OrderRead, User
 from services.crud_user import is_only_user
 from utils.deps import get_session
-from typing import Annotated, Sequence
 
 orders_router = APIRouter()
 
